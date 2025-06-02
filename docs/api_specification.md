@@ -4,7 +4,7 @@
 ### ✅ 포인트 조회
 사용자의 잔여 포인트를 조회한다.
 - Method: `GET`
-- End point: `/api/v1/points/{userId}`
+- End point: `/api/v1/users/{userId}/points`
 
 <details markdown="1">
 <summary>상세 보기</summary>
@@ -170,7 +170,7 @@ example:
 사용자가 보유한 쿠폰 목록을 조회한다.
 
 - Method: `GET`
-- Endpoint: `/api/v1/coupons/{userId}`
+- Endpoint: `/api/v1/users/{userId}/coupons`
 
 <details markdown="1">
 <summary>상세 보기</summary>
@@ -227,7 +227,7 @@ example:
 사용자가 선착순으로 쿠폰을 발급받는다.
 
 - Method: `POST`
-- Endpoint: `/api/v1/coupons/issue`
+- Endpoint: `/api/v1/coupons`
 
 <details markdown="1">
 <summary>상세 보기</summary>
