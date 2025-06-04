@@ -13,4 +13,5 @@ public class ProductResponse {
     private String name;
     private Long price;
     private Long stock;
+    private String description;
 }

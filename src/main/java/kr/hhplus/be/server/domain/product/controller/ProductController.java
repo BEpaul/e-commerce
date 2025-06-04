@@ -27,6 +27,7 @@ public class ProductController {
                 .name("상품 A")
                 .price(10000L)
                 .stock(50L)
+                .description("상품 A 설명")
                 .build();
 
         return ApiResponse.success(productResponse, "상품 조회 성공");
@@ -43,12 +44,14 @@ public class ProductController {
                         .name("상품 A")
                         .price(10000L)
                         .stock(50L)
+                        .description("상품 A 설명")
                         .build(),
                 ProductResponse.builder()
                         .id(2L)
                         .name("상품 B")
                         .price(20000L)
                         .stock(30L)
+                        .description("상품 B 설명")
                         .build()
         );
 
