@@ -1,9 +1,11 @@
 package kr.hhplus.be.server.domain.product.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import kr.hhplus.be.server.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.product.dto.response.ProductResponse;
+import kr.hhplus.be.server.domain.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,18 +19,15 @@ import java.util.List;
 @RequestMapping("/api/v1/products")
 public class ProductController {
 
+    private final ProductService productService;
+
     /**
      * 상품 단건 조회
      */
+    @Operation(summary = "상품 단건 조회", description = "상품 ID로 단일 상품을 조회합니다.")
     @GetMapping("/{productId}")
     public ApiResponse<ProductResponse> getProduct(@PathVariable @Min(1) Long productId) {
-        ProductResponse productResponse = ProductResponse.builder()
-                .id(productId)
-                .name("상품 A")
-                .price(10000L)
-                .stock(50L)
-                .description("상품 A 설명")
-                .build();
+        ProductResponse productResponse = productService.getProduct(productId);
 
         return ApiResponse.success(productResponse, "상품 조회 성공");
     }
@@ -36,24 +35,10 @@ public class ProductController {
     /**
      * 상품 목록 조회
      */
+    @Operation(summary = "상품 목록 조회", description = "모든 상품의 목록을 조회합니다.")
     @GetMapping()
     public ApiResponse<List<ProductResponse>> getProducts() {
-        List<ProductResponse> productResponses = List.of(
-                ProductResponse.builder()
-                        .id(1L)
-                        .name("상품 A")
-                        .price(10000L)
-                        .stock(50L)
-                        .description("상품 A 설명")
-                        .build(),
-                ProductResponse.builder()
-                        .id(2L)
-                        .name("상품 B")
-                        .price(20000L)
-                        .stock(30L)
-                        .description("상품 B 설명")
-                        .build()
-        );
+        List<ProductResponse> productResponses = productService.getProducts();
 
         return ApiResponse.success(productResponses, "상품 목록 조회 성공");
     }
