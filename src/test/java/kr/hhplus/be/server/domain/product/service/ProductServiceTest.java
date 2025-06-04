@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.BDDMockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,6 +53,18 @@ class ProductServiceTest {
         assertThat(response.getPrice()).isEqualTo(10000L);
         assertThat(response.getStock()).isEqualTo(50L);
         assertThat(response.getDescription()).isEqualTo("상품 A 설명");
+    }
+
+    @Test
+    void 존재하지_않는_상품_조회_시_예외가_발생한다() {
+        // given
+        Long productId = 999L;
+        given(productRepository.findById(productId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> productService.getProduct(productId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("상품이 존재하지 않습니다.");
     }
 
     @Test
