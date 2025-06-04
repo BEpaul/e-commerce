@@ -2,10 +2,7 @@ package kr.hhplus.be.server.domain.product.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.common.BaseTimeEntity;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter

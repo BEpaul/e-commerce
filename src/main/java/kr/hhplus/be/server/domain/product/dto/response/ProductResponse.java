@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.product.dto.response;
 
+import kr.hhplus.be.server.domain.product.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,4 +15,14 @@ public class ProductResponse {
     private Long price;
     private Long stock;
     private String description;
+
+    public static ProductResponse from(Product product) {
+        return ProductResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getPrice())
+                .stock(product.getStock())
+                .description(product.getDescription())
+                .build();
+    }
 }
