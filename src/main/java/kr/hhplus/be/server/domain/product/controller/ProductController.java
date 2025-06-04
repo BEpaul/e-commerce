@@ -1,9 +1,12 @@
 package kr.hhplus.be.server.domain.product.controller;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import kr.hhplus.be.server.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.product.dto.response.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,7 +21,7 @@ public class ProductController {
      * 상품 단건 조회
      */
     @GetMapping("/{productId}")
-    public ApiResponse<ProductResponse> getProduct(Long productId) {
+    public ApiResponse<ProductResponse> getProduct(@PathVariable @Min(1) Long productId) {
         ProductResponse productResponse = ProductResponse.builder()
                 .id(productId)
                 .name("상품 A")
