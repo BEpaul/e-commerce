@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,9 @@ class ProductServiceTest {
                 .stock(50L)
                 .description("상품 A 설명")
                 .build();
+        
+        // id 설정
+        ReflectionTestUtils.setField(product, "id", productId);
 
         given(productRepository.findById(productId)).willReturn(Optional.of(product));
 
@@ -51,7 +55,6 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("상품 목록 조회")
     void 상품_목록을_조회한다() {
         // given
         List<Product> products = List.of(
