@@ -28,7 +28,6 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Test
-    @DisplayName("상품 단건 조회")
     void 상품ID로_단일_상품을_조회한다() {
         // given
         Long productId = 1L;
