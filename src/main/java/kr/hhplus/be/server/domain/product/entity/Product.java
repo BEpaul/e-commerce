@@ -17,7 +17,7 @@ public class Product extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false, length = 50)
-    private String title;
+    private String name;
 
     @Column(nullable = false)
     private Long price;
@@ -29,8 +29,8 @@ public class Product extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public Product(String title, Long price, Long stock, String description) {
-        this.title = title;
+    public Product(String name, Long price, Long stock, String description) {
+        this.name = name;
         this.price = price;
         this.stock = stock;
         this.description = description;
