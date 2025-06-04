@@ -1,0 +1,47 @@
+package kr.hhplus.be.server.domain.point.entity;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+public class PointTest {
+
+    @Test
+    void 포인트_충전에_성공한다() {
+        // given
+        Long userId = 1L;
+        Long initialPoint = 10000L;
+        Long chargeAmount = 50000L;
+        Point point = Point.builder()
+                .userId(userId)
+                .volume(initialPoint)
+                .build();
+
+        // when
+
+        point.charge(chargeAmount);
+
+        // then
+        assertThat(point.getVolume()).isEqualTo(initialPoint + chargeAmount);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {-1000, -1, 0})
+    void 음수_또는_0포인트를_충전하면_예외가_발생한다(Long chargeAmount) {
+        // given
+        Long userId = 1L;
+        Long initialPoint = 10000L;
+        Point point = Point.builder()
+                .userId(userId)
+                .volume(initialPoint)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> point.charge(chargeAmount))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("충전 금액은 0보다 커야 합니다.");
+    }
+}
