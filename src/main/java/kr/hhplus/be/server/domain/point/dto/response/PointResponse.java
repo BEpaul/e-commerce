@@ -9,4 +9,10 @@ import lombok.Getter;
 @Builder
 public class PointResponse {
     private Long point;
+
+    public static PointResponse from(Long point) {
+        return PointResponse.builder()
+                .point(point)
+                .build();
+    }
 }
