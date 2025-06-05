@@ -41,7 +41,23 @@ public class PointTest {
 
         // when & then
         assertThatThrownBy(() -> point.charge(chargeAmount))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("충전 금액은 0보다 커야 합니다.");
+                .isInstanceOf(NegativeChargePointException.class);
+    }
+
+    @Test
+    void 포인트_충전_후_300만_포인트가_넘으면_예외가_발생한다() {
+         // given
+        Long userId = 1L;
+        Long initialPoint = 2500000L;
+        Long chargeAmount = 600000L; // 충전 후 총액이 3100000이 되어 예외 발생
+
+        Point point = Point.builder()
+                .userId(userId)
+                .volume(initialPoint)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> point.charge(chargeAmount))
+                .isInstanceOf(ExceedsMaximumPointException.class);
     }
 }
