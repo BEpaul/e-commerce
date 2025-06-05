@@ -2,8 +2,8 @@ package kr.hhplus.be.server.domain.point.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.common.BaseTimeEntity;
-import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
-import kr.hhplus.be.server.common.exception.NegativeChargePointException;
+import kr.hhplus.be.server.domain.point.exception.ExceedsMaximumPointException;
+import kr.hhplus.be.server.domain.point.exception.NegativeChargePointException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

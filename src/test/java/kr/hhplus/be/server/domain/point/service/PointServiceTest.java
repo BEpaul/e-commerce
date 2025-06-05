@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.domain.point.service;
 
-import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
-import kr.hhplus.be.server.common.exception.NegativeChargePointException;
-import kr.hhplus.be.server.common.exception.NotFoundUserException;
+import kr.hhplus.be.server.domain.point.exception.ExceedsMaximumPointException;
+import kr.hhplus.be.server.domain.point.exception.NegativeChargePointException;
+import kr.hhplus.be.server.domain.point.exception.NotFoundUserException;
 import kr.hhplus.be.server.domain.point.dto.response.PointResponse;
 import kr.hhplus.be.server.domain.point.entity.Point;
 import kr.hhplus.be.server.domain.point.repository.PointRepository;

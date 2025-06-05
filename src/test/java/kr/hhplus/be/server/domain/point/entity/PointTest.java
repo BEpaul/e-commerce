@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.point.entity;
 
-import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
-import kr.hhplus.be.server.common.exception.NegativeChargePointException;
+import kr.hhplus.be.server.domain.point.exception.ExceedsMaximumPointException;
+import kr.hhplus.be.server.domain.point.exception.NegativeChargePointException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

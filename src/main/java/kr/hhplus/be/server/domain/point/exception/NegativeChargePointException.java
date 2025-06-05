@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common.exception;
+package kr.hhplus.be.server.domain.point.exception;
 
 public class NegativeChargePointException extends RuntimeException {
     public NegativeChargePointException(String message) {
