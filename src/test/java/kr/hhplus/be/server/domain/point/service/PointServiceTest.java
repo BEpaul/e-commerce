@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.point.service;
 import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
 import kr.hhplus.be.server.common.exception.NegativeChargePointException;
 import kr.hhplus.be.server.common.exception.NotFoundUserException;
+import kr.hhplus.be.server.domain.point.dto.response.PointResponse;
 import kr.hhplus.be.server.domain.point.entity.Point;
 import kr.hhplus.be.server.domain.point.repository.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,10 +47,10 @@ class PointServiceTest {
         given(pointRepository.save(any(Point.class))).willReturn(point);
 
         // when
-        Point chargedPoint = pointService.chargePoint(userId, chargeAmount);
+        PointResponse response = pointService.chargePoint(userId, chargeAmount);
 
         // then
-        assertThat(chargedPoint.getVolume()).isEqualTo(1500000L);
+        assertThat(response.getPoint()).isEqualTo(1500000L);
         then(pointRepository).should().findByUserId(userId);
         then(pointRepository).should().save(any(Point.class));
     }
@@ -86,10 +87,10 @@ class PointServiceTest {
         given(pointRepository.findByUserId(userId)).willReturn(Optional.of(point));
 
         // when
-        Long foundVolume = pointService.getPoint(userId);
+        PointResponse response = pointService.getPoint(userId);
 
         // then
-        assertThat(foundVolume).isEqualTo(volume);
+        assertThat(response.getPoint()).isEqualTo(volume);
         then(pointRepository).should().findByUserId(userId);
     }
 
