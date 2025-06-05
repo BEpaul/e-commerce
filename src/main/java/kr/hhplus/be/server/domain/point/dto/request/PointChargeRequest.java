@@ -13,7 +13,7 @@ public class PointChargeRequest {
     @Positive
     private Long userId;
 
-    @Schema(description = "충전할 포인트 금액", example = "5000")
+    @Schema(description = "충전할 포인트 금액", example = "50000")
     @Positive
     private Long amount;
 

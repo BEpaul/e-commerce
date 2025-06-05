@@ -24,6 +24,7 @@ public class PointHistory extends BaseTimeEntity {
     private Long amount;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
     @Builder
