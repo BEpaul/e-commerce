@@ -97,6 +97,7 @@ example:
 | data.products[].name | String | 상품 이름 |
 | data.products[].price | Number | 상품 가격 |
 | data.products[].stock | Number | 상품 잔여 수량 |
+| data.products[].description | String | 상품 상세 설명 |
 
 example:
 ```json
@@ -109,13 +110,15 @@ example:
         "id": 1,
         "name": "상품 A",
         "price": 10000,
-        "stock": 50
+        "stock": 50,
+        "description": "상품 A의 상세 설명입니다."
       },
       {
         "id": 2,
         "name": "상품 B",
         "price": 20000,
-        "stock": 30
+        "stock": 30,
+        "description": "상품 B의 상세 설명입니다."
       }
     ]
   }
