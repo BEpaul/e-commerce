@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -26,10 +29,20 @@ public class Point extends BaseTimeEntity {
     @Column(nullable = false)
     private Long volume;
 
+    @OneToMany(mappedBy = "point", cascade = CascadeType.ALL)
+    private List<PointHistory> pointHistories = new ArrayList<>();
+
     @Builder
     public Point(Long userId, Long volume) {
         this.userId = userId;
         this.volume = volume;
+    }
+
+    public static Point create(Long userId, Long volume) {
+        return Point.builder()
+                .userId(userId)
+                .volume(volume)
+                .build();
     }
 
     public void charge(Long amount) {
@@ -42,5 +55,10 @@ public class Point extends BaseTimeEntity {
         }
 
         this.volume += amount;
+    }
+
+    public void addChargePointHistory(Long amount) {
+        PointHistory pointHistory = PointHistory.create(this, amount, TransactionType.CHARGE);
+        this.pointHistories.add(pointHistory);
     }
 }
