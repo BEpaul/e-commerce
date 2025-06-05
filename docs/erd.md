@@ -96,7 +96,7 @@ CREATE TABLE `orders` (
 -- 상품
 CREATE TABLE `product` (
     `product_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(50) NOT NULL,
+    `name` VARCHAR(50) NOT NULL,
     `price` BIGINT NOT NULL,
     `stock` BIGINT NOT NULL,
     `description` VARCHAR(300) NOT NULL,
