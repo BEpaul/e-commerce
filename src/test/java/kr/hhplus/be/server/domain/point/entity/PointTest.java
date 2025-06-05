@@ -17,13 +17,9 @@ public class PointTest {
         Long userId = 1L;
         Long initialPoint = 10000L;
         Long chargeAmount = 50000L;
-        Point point = Point.builder()
-                .userId(userId)
-                .volume(initialPoint)
-                .build();
+        Point point = Point.create(userId, initialPoint);
 
         // when
-
         point.charge(chargeAmount);
 
         // then
@@ -36,10 +32,7 @@ public class PointTest {
         // given
         Long userId = 1L;
         Long initialPoint = 10000L;
-        Point point = Point.builder()
-                .userId(userId)
-                .volume(initialPoint)
-                .build();
+        Point point = Point.create(userId, initialPoint);
 
         // when & then
         assertThatThrownBy(() -> point.charge(chargeAmount))
@@ -53,10 +46,7 @@ public class PointTest {
         Long initialPoint = 2500000L;
         Long chargeAmount = 600000L; // 충전 후 총액이 3100000이 되어 예외 발생
 
-        Point point = Point.builder()
-                .userId(userId)
-                .volume(initialPoint)
-                .build();
+        Point point = Point.create(userId, initialPoint);
 
         // when & then
         assertThatThrownBy(() -> point.charge(chargeAmount))
