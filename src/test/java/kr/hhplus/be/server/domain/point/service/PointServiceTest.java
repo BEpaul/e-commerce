@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.point.service;
 
 import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
 import kr.hhplus.be.server.common.exception.NegativeChargePointException;
+import kr.hhplus.be.server.common.exception.NotFoundUserException;
 import kr.hhplus.be.server.domain.point.entity.Point;
 import kr.hhplus.be.server.domain.point.repository.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,7 @@ class PointServiceTest {
     void 음수_금액으로_충전할_수_없다() {
         // given
         Long negativeAmount = -100000L;
+        given(pointRepository.findByUserId(userId)).willReturn(Optional.of(point));
 
         // when & then
         assertThatThrownBy(() -> pointService.chargePoint(userId, negativeAmount))
