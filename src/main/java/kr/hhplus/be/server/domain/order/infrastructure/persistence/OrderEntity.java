@@ -16,13 +16,19 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(nullable = false)
     private Long userId;
+    
+    @Column(nullable = false)
     private Long totalAmount;
     
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus status;
     
+    @Column(nullable = false)
     private boolean isCouponApplied;
+    
     private Long userCouponId;
 
     public static OrderEntity from(Order order) {
