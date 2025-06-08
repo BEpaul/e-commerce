@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
+import kr.hhplus.be.server.common.exception.ExpiredCouponException;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -30,5 +31,11 @@ public class UserCoupon {
         }
 
         this.isUsed = true;
+    }
+
+    public void isExpired() {
+        if (LocalDateTime.now().isAfter(this.expiredAt)) {
+            throw new ExpiredCouponException("쿠폰이 만료되었습니다.");
+        }
     }
 }
