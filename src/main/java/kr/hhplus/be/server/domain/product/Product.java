@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.product;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.common.BaseTimeEntity;
+import kr.hhplus.be.server.common.exception.OutOfStockException;
 import lombok.*;
 
 @Entity
@@ -31,5 +32,12 @@ public class Product extends BaseTimeEntity {
         this.price = price;
         this.stock = stock;
         this.description = description;
+    }
+
+    public void decreaseStock(Long quantity) {
+        if (this.stock < quantity) {
+            throw new OutOfStockException("상품의 재고가 부족합니다.");
+        }
+        this.stock -= quantity;
     }
 }
