@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.coupon;
 
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
-import kr.hhplus.be.server.common.exception.NotFoundCouponException;
+import kr.hhplus.be.server.common.exception.NotOwnedUserCouponException;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,55 +43,54 @@ class CouponServiceTest {
     @Test
     void 쿠폰_사용에_성공한다() {
         // given
-        Long couponId = 200L;
-        given(userCouponRepository.findByCouponId(couponId))
+        Long userCouponId = 1L;
+        given(userCouponRepository.findById(userCouponId))
             .willReturn(Optional.of(userCoupon));
 
         // when
-        couponService.useCoupon(couponId);
+        couponService.useCoupon(userCouponId);
 
         // then
-        then(userCouponRepository).should(times(1)).findByCouponId(couponId);
+        then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(times(1)).save(any(UserCoupon.class));
     }
 
     @Test
-    void 존재하지_않는_쿠폰_사용_시_예외가_발생한다() {
+    void 사용자가_가지고_있지_않은_쿠폰_사용_시_예외가_발생한다() {
         // given
-        Long couponId = 999L;
-        given(userCouponRepository.findByCouponId(couponId))
+        Long userCouponId = 999L;
+        given(userCouponRepository.findById(userCouponId))
             .willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> couponService.useCoupon(couponId))
-            .isInstanceOf(NotFoundCouponException.class)
-            .hasMessage("존재하지 않는 쿠폰입니다.");
+        assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
+                .isInstanceOf(NotOwnedUserCouponException.class);
 
-        then(userCouponRepository).should(times(1)).findByCouponId(couponId);
+        then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
     }
 
     @Test
     void 이미_사용된_쿠폰_사용_시_예외가_발생한다() {
         // given
-        Long couponId = 200L;
+        Long userCouponId = 1L;
         UserCoupon usedCoupon = UserCoupon.builder()
-            .id(1L)
+            .id(userCouponId)
             .userId(100L)
             .couponId(200L)
             .isUsed(true)
             .expiredAt(LocalDateTime.now().plusDays(7))
             .build();
 
-        given(userCouponRepository.findByCouponId(couponId))
+        given(userCouponRepository.findById(userCouponId))
             .willReturn(Optional.of(usedCoupon));
 
         // when & then
-        assertThatThrownBy(() -> couponService.useCoupon(couponId))
+        assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
             .isInstanceOf(AlreadyUsedCouponException.class)
             .hasMessage("이미 사용된 쿠폰입니다.");
 
-        then(userCouponRepository).should(times(1)).findByCouponId(couponId);
+        then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
     }
 } 
