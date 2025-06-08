@@ -2,9 +2,11 @@ package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
 public class UserCoupon {
 
     private Long id;
