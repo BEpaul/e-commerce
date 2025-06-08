@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
+import kr.hhplus.be.server.common.exception.ExpiredCouponException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -43,5 +44,22 @@ class UserCouponTest {
         assertThatThrownBy(() -> userCoupon.use())
             .isInstanceOf(AlreadyUsedCouponException.class)
             .hasMessage("이미 사용된 쿠폰입니다.");
+    }
+
+    @Test
+    void 쿠폰_만료_시_예외_발생() {
+        // given
+        UserCoupon userCoupon = UserCoupon.builder()
+            .id(1L)
+            .userId(100L)
+            .couponId(200L)
+            .isUsed(false)
+            .expiredAt(LocalDateTime.now().minusDays(1))
+            .build();
+
+        // when & then
+        assertThatThrownBy(() -> userCoupon.isExpired())
+            .isInstanceOf(ExpiredCouponException.class)
+            .hasMessage("쿠폰이 만료되었습니다.");
     }
 } 
