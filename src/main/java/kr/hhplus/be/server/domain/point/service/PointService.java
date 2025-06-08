@@ -16,21 +16,19 @@ public class PointService {
     private final PointRepository pointRepository;
 
     @Transactional
-    public PointResponse chargePoint(Long userId, Long chargeAmount) {
+    public Point chargePoint(Long userId, Long chargeAmount) {
         Point point = pointRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
 
         point.charge(chargeAmount);
         point.addChargePointHistory(chargeAmount);
         
-        Point savedPoint = pointRepository.save(point);
-        return PointResponse.from(savedPoint.getVolume());
+        return pointRepository.save(point);
     }
 
     @Transactional(readOnly = true)
-    public PointResponse getPoint(Long userId) {
-        Point point = pointRepository.findByUserId(userId)
+    public Point getPoint(Long userId) {
+        return pointRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
-        return PointResponse.from(point.getVolume());
     }
 }
