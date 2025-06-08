@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
