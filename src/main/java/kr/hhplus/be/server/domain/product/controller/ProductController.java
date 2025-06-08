@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import kr.hhplus.be.server.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.product.dto.response.ProductResponse;
+import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,9 +29,9 @@ public class ProductController {
     @Operation(summary = "상품 단건 조회", description = "상품 ID로 단일 상품을 조회합니다.")
     @GetMapping("/{productId}")
     public ApiResponse<ProductResponse> getProduct(@PathVariable @Min(1) Long productId) {
-        ProductResponse productResponse = productService.getProduct(productId);
+        Product product = productService.getProduct(productId);
 
-        return ApiResponse.success(productResponse, "상품 조회 성공");
+        return ApiResponse.success(ProductResponse.from(product), "상품 조회 성공");
     }
 
     /**
@@ -38,8 +40,12 @@ public class ProductController {
     @Operation(summary = "상품 목록 조회", description = "모든 상품의 목록을 조회합니다.")
     @GetMapping()
     public ApiResponse<List<ProductResponse>> getProducts() {
-        List<ProductResponse> productResponses = productService.getProducts();
+        List<Product> products = productService.getProducts();
 
-        return ApiResponse.success(productResponses, "상품 목록 조회 성공");
+        List<ProductResponse> responses = products.stream()
+                .map(ProductResponse::from)
+                .toList();
+
+        return ApiResponse.success(responses, "상품 목록 조회 성공");
     }
 }

@@ -47,10 +47,10 @@ class PointServiceTest {
         given(pointRepository.save(any(Point.class))).willReturn(point);
 
         // when
-        PointResponse response = pointService.chargePoint(userId, chargeAmount);
+        Point point = pointService.chargePoint(userId, chargeAmount);
 
         // then
-        assertThat(response.getPoint()).isEqualTo(1500000L);
+        assertThat(point.getVolume()).isEqualTo(1500000L);
         then(pointRepository).should().findByUserId(userId);
         then(pointRepository).should().save(any(Point.class));
     }
@@ -87,10 +87,10 @@ class PointServiceTest {
         given(pointRepository.findByUserId(userId)).willReturn(Optional.of(point));
 
         // when
-        PointResponse response = pointService.getPoint(userId);
+        Point point = pointService.getPoint(userId);
 
         // then
-        assertThat(response.getPoint()).isEqualTo(volume);
+        assertThat(point.getVolume()).isEqualTo(volume);
         then(pointRepository).should().findByUserId(userId);
     }
 

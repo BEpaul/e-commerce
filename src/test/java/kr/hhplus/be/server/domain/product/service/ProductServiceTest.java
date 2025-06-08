@@ -44,14 +44,14 @@ class ProductServiceTest {
         given(productRepository.findById(productId)).willReturn(Optional.of(product));
 
         // when
-        ProductResponse response = productService.getProduct(productId);
+        Product findProduct = productService.getProduct(productId);
 
         // then
-        assertThat(response.getId()).isEqualTo(productId);
-        assertThat(response.getName()).isEqualTo("상품 A");
-        assertThat(response.getPrice()).isEqualTo(10000L);
-        assertThat(response.getStock()).isEqualTo(50L);
-        assertThat(response.getDescription()).isEqualTo("상품 A 설명");
+        assertThat(findProduct.getId()).isEqualTo(productId);
+        assertThat(findProduct.getName()).isEqualTo("상품 A");
+        assertThat(findProduct.getPrice()).isEqualTo(10000L);
+        assertThat(findProduct.getStock()).isEqualTo(50L);
+        assertThat(findProduct.getDescription()).isEqualTo("상품 A 설명");
     }
 
     @Test
@@ -87,11 +87,11 @@ class ProductServiceTest {
         given(productRepository.findAll()).willReturn(products);
 
         // when
-        List<ProductResponse> responses = productService.getProducts();
+        List<Product> findProducts = productService.getProducts();
 
         // then
-        assertThat(responses).hasSize(2);
-        assertThat(responses.get(0).getName()).isEqualTo("상품 1");
-        assertThat(responses.get(1).getName()).isEqualTo("상품 2");
+        assertThat(findProducts).hasSize(2);
+        assertThat(findProducts.get(0).getName()).isEqualTo("상품 1");
+        assertThat(findProducts.get(1).getName()).isEqualTo("상품 2");
     }
 }
