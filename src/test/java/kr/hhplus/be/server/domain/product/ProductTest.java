@@ -12,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ProductTest {
 
     @Test
-    @DisplayName("정상적으로 상품 재고가 차감된다")
     void 정상적으로_상품_재고가_차감된다() {
         // given
         Long stock = 10L;
@@ -34,7 +33,6 @@ class ProductTest {
     }
 
     @Test
-    @DisplayName("주문 수량보다 상품 재고가 부족할 경우 예외가 발생한다")
     void 주문_수량보다_상품_재고가_부족할_경우_예외가_발생한다() {
         // given
         Long stock = 5L;
