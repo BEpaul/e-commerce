@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import kr.hhplus.be.server.common.exception.InvalidCouponValueException;
+import kr.hhplus.be.server.common.exception.NotSupportedDiscountTypeException;
+import kr.hhplus.be.server.common.exception.OutOfStockCouponException;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,5 +28,19 @@ public class Coupon {
         this.stock = stock;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public Long apply(Long productPrice) {
+        if (this.stock <= 0) {
+            throw new OutOfStockCouponException("쿠폰의 재고가 부족합니다.");
+        }
+
+        if (discountType == DiscountType.AMOUNT) {
+            return Math.max(productPrice - discountValue, 0L);
+        } else if (discountType == DiscountType.PERCENT) {
+            return productPrice - (productPrice * discountValue / 100);
+        }
+
+        throw new NotSupportedDiscountTypeException("지원하지 않는 할인 유형입니다.");
     }
 }
