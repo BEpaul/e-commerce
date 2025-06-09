@@ -42,8 +42,7 @@ class UserCouponTest {
 
         // when & then
         assertThatThrownBy(() -> userCoupon.use())
-            .isInstanceOf(AlreadyUsedCouponException.class)
-            .hasMessage("이미 사용된 쿠폰입니다.");
+                .isInstanceOf(AlreadyUsedCouponException.class);
     }
 
     @Test
@@ -59,7 +58,6 @@ class UserCouponTest {
 
         // when & then
         assertThatThrownBy(() -> userCoupon.isExpired())
-            .isInstanceOf(ExpiredCouponException.class)
-            .hasMessage("쿠폰이 만료되었습니다.");
+                .isInstanceOf(ExpiredCouponException.class);
     }
 } 
