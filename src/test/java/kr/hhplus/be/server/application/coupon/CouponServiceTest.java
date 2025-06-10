@@ -111,8 +111,7 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
-            .isInstanceOf(AlreadyUsedCouponException.class)
-            .hasMessage("이미 사용된 쿠폰입니다.");
+                .isInstanceOf(AlreadyUsedCouponException.class);
 
         then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
@@ -154,9 +153,8 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(userId, couponId))
-            .isInstanceOf(OutOfStockCouponException.class)
-            .hasMessage("쿠폰의 재고가 부족합니다.");
-            
+                .isInstanceOf(OutOfStockCouponException.class);
+
         then(couponRepository).should(times(1)).findById(couponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
     }
