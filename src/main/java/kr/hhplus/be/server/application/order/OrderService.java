@@ -8,7 +8,10 @@ import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.infrastructure.external.DataPlatform;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ public class OrderService {
     private final CouponService couponService;
     private final ProductService productService;
     private final PointService pointService;
+    private final DataPlatform dataPlatform;
 
     /**
      * 주문 생성
@@ -55,7 +59,8 @@ public class OrderService {
         // 잔액 차감
         pointService.usePoint(order.getUserId(), totalPrice);
 
-        // TODO: 데이터 플랫폼 (외부 시스템) 주문 정보 전송
+        // 데이터 플랫폼 (외부 시스템) 주문 정보 전송
+        dataPlatform.sendData(Payment.from(order.getUserId(), PaymentMethod.POINT, totalPrice));
 
         // 주문 저장
         Order savedOrder = orderRepository.save(order);

@@ -1,12 +1,14 @@
 package kr.hhplus.be.server.domain.payment;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 public class Payment {
     private Long id;
     private Long orderId;
@@ -16,11 +18,13 @@ public class Payment {
     private LocalDateTime approvedAt;
     private LocalDateTime canceledAt;
 
-    public Payment(Long orderId, PaymentMethod paymentMethod, Long amount) {
-        this.orderId = orderId;
-        this.paymentMethod = paymentMethod;
-        this.amount = amount;
-        this.status = PaymentStatus.PENDING;
+    public static Payment from(Long orderId, PaymentMethod paymentMethod, Long amount) {
+        return Payment.builder()
+                .orderId(orderId)
+                .paymentMethod(paymentMethod)
+                .amount(amount)
+                .status(PaymentStatus.PENDING)
+                .build();
     }
 
     public void approve() {
