@@ -1,9 +1,6 @@
 package kr.hhplus.be.server.domain.coupon;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
 import kr.hhplus.be.server.common.exception.ExpiredCouponException;
 import lombok.AccessLevel;
@@ -20,6 +17,7 @@ public class UserCoupon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_coupon_id")
     private Long id;
     private Long userId;
     private Long couponId;

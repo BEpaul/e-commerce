@@ -1,27 +1,38 @@
 package kr.hhplus.be.server.domain.order;
 
+import jakarta.persistence.*;
 import kr.hhplus.be.server.common.exception.AlreadyAppliedCoupon;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "orders")
 public class Order {
-   private Long id;
-   private Long userId;
-   private Long userCouponId;
-   private Long totalAmount;
-   private OrderStatus status;
-   private boolean isCouponApplied;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id")
+    private Long id;
+    private Long userId;
+    private Long userCouponId;
+    private Long totalAmount;
 
-   @Builder
-   private Order(Long id, Long userId, Long userCouponId, Long totalAmount, boolean isCouponApplied) {
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+    private boolean isCouponApplied;
+
+    @Builder
+    private Order(Long id, Long userId, Long userCouponId, Long totalAmount, boolean isCouponApplied) {
        this.id = id;
        this.userId = userId;
        this.userCouponId = userCouponId;
        this.totalAmount = totalAmount;
        this.status = OrderStatus.WAITING;
        this.isCouponApplied = isCouponApplied;
-   }
+    }
 
     public void calculateTotalAmount(Long totalAmount) {
        this.totalAmount = totalAmount;
