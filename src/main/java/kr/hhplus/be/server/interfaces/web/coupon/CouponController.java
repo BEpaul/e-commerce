@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.interfaces.web.coupon;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "쿠폰", description = "쿠폰 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/coupons")
