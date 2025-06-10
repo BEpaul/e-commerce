@@ -43,6 +43,7 @@ public class CouponService {
         }
 
         coupon.decreaseStock();
+        couponRepository.save(coupon);
         
         UserCoupon userCoupon = UserCoupon.of(userId, couponId);
         return userCouponRepository.save(userCoupon);
