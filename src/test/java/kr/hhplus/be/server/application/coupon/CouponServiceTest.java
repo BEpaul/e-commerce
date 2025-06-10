@@ -111,7 +111,8 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
-                .isInstanceOf(AlreadyUsedCouponException.class);
+            .isInstanceOf(AlreadyUsedCouponException.class)
+            .hasMessage("이미 사용된 쿠폰입니다.");
 
         then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
