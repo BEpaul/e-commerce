@@ -44,6 +44,7 @@ public class OrderService {
         if (order.getUserCouponId() != null) {
             totalPrice = couponService.calculateDiscountPrice(order.getUserCouponId(), totalPrice);
             couponService.useCoupon(order.getUserCouponId());
+            order.applyCoupon();
         }
 
         // 주문 총액 설정

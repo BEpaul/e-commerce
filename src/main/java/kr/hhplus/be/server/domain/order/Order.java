@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.order;
 
+import kr.hhplus.be.server.common.exception.AlreadyAppliedCoupon;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,16 +14,23 @@ public class Order {
    private boolean isCouponApplied;
 
    @Builder
-   private Order(Long id, Long userId, Long userCouponId, Long totalAmount, OrderStatus status, boolean isCouponApplied) {
+   private Order(Long id, Long userId, Long userCouponId, Long totalAmount, boolean isCouponApplied) {
        this.id = id;
        this.userId = userId;
        this.userCouponId = userCouponId;
        this.totalAmount = totalAmount;
-       this.status = status;
+       this.status = OrderStatus.WAITING;
        this.isCouponApplied = isCouponApplied;
    }
 
     public void calculateTotalAmount(Long totalAmount) {
        this.totalAmount = totalAmount;
+    }
+
+    public void applyCoupon() {
+        if (this.isCouponApplied) {
+            throw new AlreadyAppliedCoupon("쿠폰이 이미 적용되었습니다.");
+        }
+        this.isCouponApplied = true;
     }
 }
