@@ -8,9 +8,9 @@ import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
-import kr.hhplus.be.server.interfaces.web.product.dto.request.OrderProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,6 +26,7 @@ public class OrderService {
     /**
      * 주문 생성
      */
+    @Transactional
     public Order createOrder(Order order, List<OrderProduct> orderProducts) {
         if (orderProducts == null || orderProducts.isEmpty()) {
             throw new OrderProductEmptyException("주문 상품이 존재하지 않습니다.");
@@ -41,10 +42,22 @@ public class OrderService {
 
         // 쿠폰 사용
         if (order.getUserCouponId() != null) {
-            couponService.calculateDiscountPrice(order.getUserCouponId(), totalPrice);
+            totalPrice = couponService.calculateDiscountPrice(order.getUserCouponId(), totalPrice);
             couponService.useCoupon(order.getUserCouponId());
         }
 
-        return orderRepository.save(order);
+        // 주문 총액 설정
+        order.calculateTotalAmount(totalPrice);
+
+        // 주문 저장
+        Order savedOrder = orderRepository.save(order);
+
+        // 주문 상품 저장
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProduct.assignOrderId(savedOrder.getId());
+            orderProductRepository.save(orderProduct);
+        }
+
+        return savedOrder;
     }
 }

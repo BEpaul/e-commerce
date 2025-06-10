@@ -21,4 +21,8 @@ public class Order {
        this.status = status;
        this.isCouponApplied = isCouponApplied;
    }
+
+    public void calculateTotalAmount(Long totalAmount) {
+       this.totalAmount = totalAmount;
+    }
 }
