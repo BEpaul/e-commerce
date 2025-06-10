@@ -4,7 +4,7 @@ import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
 import kr.hhplus.be.server.common.exception.NegativeChargePointException;
 import kr.hhplus.be.server.common.exception.NotFoundUserException;
 import kr.hhplus.be.server.domain.point.Point;
-import kr.hhplus.be.server.infrastructure.point.PointRepository;
+import kr.hhplus.be.server.infrastructure.persistence.point.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
