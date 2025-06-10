@@ -38,4 +38,13 @@ public class UserCoupon {
             throw new ExpiredCouponException("쿠폰이 만료되었습니다.");
         }
     }
+
+    public static UserCoupon of(Long userId, Long couponId) {
+        return UserCoupon.builder()
+                .userId(userId)
+                .couponId(couponId)
+                .isUsed(false)
+                .expiredAt(LocalDateTime.now().plusDays(30)) // 기본 만료 기간을 30일로 설정
+                .build();
+    }
 }
