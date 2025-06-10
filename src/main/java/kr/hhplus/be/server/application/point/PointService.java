@@ -11,22 +11,31 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PointService {
 
-    private static final Long MAXIMUM_POINT = 3_000_000L;
     private final PointRepository pointRepository;
 
     @Transactional
     public Point chargePoint(Long userId, Long chargeAmount) {
-        Point point = pointRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
-
+        Point point = findPointByUserId(userId);
         point.charge(chargeAmount);
         point.addChargePointHistory(chargeAmount);
-        
         return pointRepository.save(point);
     }
 
     @Transactional(readOnly = true)
     public Point getPoint(Long userId) {
+        return findPointByUserId(userId);
+    }
+
+    @Transactional
+    public Point usePoint(Long userId, Long useAmount) {
+        Point point = findPointByUserId(userId);
+        point.use(useAmount);
+        point.addUsePointHistory(useAmount);
+        return pointRepository.save(point);
+    }
+
+    // 중복 제거를 위한 private 메서드
+    private Point findPointByUserId(Long userId) {
         return pointRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
     }

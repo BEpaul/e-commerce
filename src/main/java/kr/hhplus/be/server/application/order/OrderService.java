@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.application.coupon.CouponService;
+import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.common.exception.OrderProductEmptyException;
 import kr.hhplus.be.server.domain.order.Order;
@@ -22,6 +23,7 @@ public class OrderService {
     private final OrderProductRepository orderProductRepository;
     private final CouponService couponService;
     private final ProductService productService;
+    private final PointService pointService;
 
     /**
      * 주문 생성
@@ -49,6 +51,11 @@ public class OrderService {
 
         // 주문 총액 설정
         order.calculateTotalAmount(totalPrice);
+
+        // 잔액 차감
+        pointService.usePoint(order.getUserId(), totalPrice);
+
+        // TODO: 데이터 플랫폼 (외부 시스템) 주문 정보 전송
 
         // 주문 저장
         Order savedOrder = orderRepository.save(order);
