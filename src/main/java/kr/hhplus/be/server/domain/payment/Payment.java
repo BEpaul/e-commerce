@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
@@ -17,26 +18,40 @@ public class Payment {
     private Long id;
     
     private Long orderId;
+    private String idempotencyKey;
+    private Long amount;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     
-    private Long amount;
-
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
     
     private LocalDateTime approvedAt;
     private LocalDateTime canceledAt;
 
-    public static Payment create(Long orderId, PaymentMethod paymentMethod, Long amount) {
-        Payment payment = new Payment();
-        payment.orderId = orderId;
-        payment.paymentMethod = paymentMethod;
-        payment.amount = amount;
-        payment.status = PaymentStatus.PENDING;
-        
-        return payment;
+    @Builder
+    private Payment(Long id, Long orderId, String idempotencyKey, Long amount, PaymentMethod paymentMethod, PaymentStatus status) {
+        this.id = id;
+        this.orderId = orderId;
+        this.idempotencyKey = idempotencyKey;
+        this.amount = amount;
+        this.paymentMethod = paymentMethod;
+        this.status = status;
+    }
+
+    public static Payment create(Long orderId, PaymentMethod method, Long amount) {
+        return Payment.builder()
+                .orderId(orderId)
+                .idempotencyKey(generateIdempotencyKey(orderId))
+                .amount(amount)
+                .paymentMethod(method)
+                .status(PaymentStatus.PENDING)
+                .build();
+    }
+
+    private static String generateIdempotencyKey(Long orderId) {
+        return String.format("ORDER_%d_%d", orderId, System.currentTimeMillis());
     }
 
     public void approve() {
