@@ -7,11 +7,11 @@ import lombok.Getter;
 @Builder
 public class CouponIssueResponse {
 
-    private Long couponeId;
+    private Long couponId;
 
-    public static CouponIssueResponse from(Long couponeId) {
+    public static CouponIssueResponse from(Long couponId) {
         return CouponIssueResponse.builder()
-                .couponeId(couponeId)
+                .couponId(couponId)
                 .build();
     }
 }
