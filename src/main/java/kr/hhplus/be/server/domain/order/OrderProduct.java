@@ -29,7 +29,8 @@ public class OrderProduct {
         this.quantity = quantity;
     }
 
-    public void assignOrderId(Long orderId) {
+    public void assignOrderInfo(Long orderId, Long unitPrice) {
         this.orderId = orderId;
+        this.unitPrice = unitPrice;
     }
 }

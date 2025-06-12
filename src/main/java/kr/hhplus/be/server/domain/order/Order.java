@@ -44,4 +44,8 @@ public class Order {
         }
         this.isCouponApplied = true;
     }
+
+    public void success() {
+        this.status = OrderStatus.DONE;
+    }
 }

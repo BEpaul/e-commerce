@@ -1,30 +1,42 @@
 package kr.hhplus.be.server.domain.payment;
 
 import jakarta.persistence.*;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Entity
 @Getter
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id")
     private Long id;
+    
     private Long orderId;
+
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+    
     private Long amount;
+
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
+    
     private LocalDateTime approvedAt;
     private LocalDateTime canceledAt;
 
-    public static Payment from(Long orderId, PaymentMethod paymentMethod, Long amount) {
-        return Payment.builder()
-                .orderId(orderId)
-                .paymentMethod(paymentMethod)
-                .amount(amount)
-                .status(PaymentStatus.PENDING)
-                .build();
+    public static Payment create(Long orderId, PaymentMethod paymentMethod, Long amount) {
+        Payment payment = new Payment();
+        payment.orderId = orderId;
+        payment.paymentMethod = paymentMethod;
+        payment.amount = amount;
+        payment.status = PaymentStatus.PENDING;
+        
+        return payment;
     }
 
     public void approve() {
