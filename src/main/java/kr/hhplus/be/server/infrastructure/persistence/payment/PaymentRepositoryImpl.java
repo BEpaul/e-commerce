@@ -20,11 +20,11 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public Optional<Payment> findByIdempotencyKey(String idempotencyKey) {
-        return Optional.empty();
+        return paymentJpaRepository.findByIdempotencyKey(idempotencyKey);
     }
 
     @Override
     public boolean existsByIdempotencyKey(String idempotencyKey) {
-        return false;
+        return paymentJpaRepository.existsByIdempotencyKey(idempotencyKey);
     }
 }
