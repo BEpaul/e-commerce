@@ -27,6 +27,9 @@ public class Coupon {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
+    @Version
+    private Long version;
+
     @Builder
     public Coupon(Long id, Long discountValue, DiscountType discountType, String title, Long stock, LocalDateTime startDate, LocalDateTime endDate) {
         this.id = id;
