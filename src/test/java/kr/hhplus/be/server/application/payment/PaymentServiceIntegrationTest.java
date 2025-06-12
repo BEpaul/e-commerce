@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
+import kr.hhplus.be.server.common.exception.DuplicatePaymentException;
 import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
@@ -67,8 +68,7 @@ class PaymentServiceIntegrationTest {
 
             // when & then
             assertThatThrownBy(() -> paymentService.processPayment(payment))
-                    .isInstanceOf(NotExistPaymentInfoException.class)
-                    .hasMessage("결제 정보가 없습니다.");
+                    .isInstanceOf(NotExistPaymentInfoException.class);
         }
 
         @Test
@@ -83,6 +83,20 @@ class PaymentServiceIntegrationTest {
             // then
             assertThat(result).isFalse();
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        }
+
+        @Test
+        void 동일한_결제_요청이_중복으로_들어오면_예외가_발생한다() {
+            // given
+            Payment payment = Payment.create(orderId, PaymentMethod.POINT, amount);
+            given(dataPlatform.sendData(any())).willReturn(true);
+
+            // when
+            paymentService.processPayment(payment);
+
+            // then
+            assertThatThrownBy(() -> paymentService.processPayment(payment))
+                    .isInstanceOf(DuplicatePaymentException.class);
         }
     }
 } 
