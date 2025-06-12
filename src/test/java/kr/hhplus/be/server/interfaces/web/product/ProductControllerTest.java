@@ -3,7 +3,6 @@ package kr.hhplus.be.server.interfaces.web.product;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.domain.product.Product;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,8 +29,7 @@ class ProductControllerTest {
     private ProductService productService;
 
     @Test
-    @DisplayName("상품 단건을 조회한다")
-    void getProduct() throws Exception {
+    void 상품_단건을_조회한다() throws Exception {
         // given
         Long productId = 1L;
         Product product = Product.builder()
@@ -56,8 +54,7 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("상품 목록을 조회한다")
-    void getProducts() throws Exception {
+    void 상품_목록을_조회한다() throws Exception {
         // given
         Product product1 = Product.builder()
                 .id(1L)
