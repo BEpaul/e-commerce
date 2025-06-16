@@ -10,7 +10,7 @@ public class BestSellerResponse {
     private Long id;
     private String name;
     private Long price;
-    private Integer stock;
+    private Long stock;
     private Long rank;
 
     public static BestSellerResponse from(BestSeller bestSeller) {

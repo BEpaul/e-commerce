@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "bestseller")
 public class BestSeller extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,12 +20,12 @@ public class BestSeller extends BaseTimeEntity {
     private Long id;
     private String name;
     private Long price;
-    private Integer stock;
+    private Long stock;
     private Long rank;
     private LocalDateTime topDate;
 
     @Builder
-    public BestSeller(Long id, String name, Long price, Integer stock, Long rank, LocalDateTime topDate) {
+    public BestSeller(Long id, String name, Long price, Long stock, Long rank, LocalDateTime topDate) {
         this.id = id;
         this.name = name;
         this.price = price;
