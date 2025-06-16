@@ -17,14 +17,18 @@ public class BestSeller extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bestseller_id")
     private Long id;
-    private Long productId;
+    private String name;
+    private Long price;
+    private Integer stock;
     private Long rank;
     private LocalDateTime topDate;
 
     @Builder
-    public BestSeller(Long id, Long productId, Long rank, LocalDateTime topDate) {
+    public BestSeller(Long id, String name, Long price, Integer stock, Long rank, LocalDateTime topDate) {
         this.id = id;
-        this.productId = productId;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
         this.rank = rank;
         this.topDate = topDate;
     }
