@@ -20,6 +20,13 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> error(int code, String msg) {
+        return ApiResponse.<T>builder()
+                .code(code)
+                .message(msg)
+                .build();
+    }
+
     @Builder
     public ApiResponse(int code, String message, T data) {
         this.code = code;
