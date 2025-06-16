@@ -30,15 +30,13 @@ class ProductServiceTest {
         // given
         Long productId = 1L;
         Product product = Product.builder()
+                .id(productId)
                 .name("상품 A")
                 .price(10000L)
                 .stock(50L)
                 .description("상품 A 설명")
                 .build();
         
-        // id 설정
-        ReflectionTestUtils.setField(product, "id", productId);
-
         given(productRepository.findById(productId)).willReturn(Optional.of(product));
 
         // when
