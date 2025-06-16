@@ -1,6 +1,123 @@
 # ERD
 
-<img src="images/erd.png" alt="잔액 충전 시퀀스 다이어그램" width="100%" height="auto">
+
+```mermaid
+erDiagram
+    user ||--o{ orders : has
+    user ||--o{ user_coupon : owns
+    user ||--o{ point : has
+
+    point ||--o{ point_history : logs
+    coupon ||--o{ user_coupon : includes
+    orders ||--o{ order_product : contains
+    product ||--o{ order_product : included_in
+    orders ||--o{ payment : paid_by
+    user_coupon ||--o{ orders : applied_to
+
+    product ||--o{ bestseller : appears_in
+
+    user {
+        BIGINT user_id PK
+        VARCHAR nickname
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    coupon {
+        BIGINT coupon_id PK
+        BIGINT discount_value
+        ENUM discount_type
+        VARCHAR title
+        BIGINT stock
+        DATETIME start_date
+        DATETIME end_date
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    user_coupon {
+        BIGINT user_coupon_id PK
+        BIGINT user_id FK
+        BIGINT coupon_id FK
+        TINYINT is_used
+        DATETIME expired_at
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    orders {
+        BIGINT order_id PK
+        BIGINT user_id FK
+        BIGINT total_amount
+        VARCHAR status
+        TINYINT is_coupon_applied
+        BIGINT user_coupon_id FK
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    product {
+        BIGINT product_id PK
+        VARCHAR name
+        BIGINT price
+        BIGINT stock
+        VARCHAR description
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    order_product {
+        BIGINT order_product_id PK
+        BIGINT order_id FK
+        BIGINT product_id FK
+        BIGINT unit_price
+        BIGINT quantity
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    payment {
+        BIGINT payment_id PK
+        BIGINT order_id FK
+        VARCHAR idempotency_key
+        BIGINT amount
+        VARCHAR payment_method
+        VARCHAR status
+        DATETIME approved_at
+        DATETIME canceled_at
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    point {
+        BIGINT point_id PK
+        BIGINT user_id FK
+        BIGINT volume
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    point_history {
+        BIGINT point_history_id PK
+        BIGINT point_id FK
+        BIGINT amount
+        VARCHAR transaction_type
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    bestseller {
+        BIGINT bestseller_id PK
+        BIGINT product_id FK
+        VARCHAR name
+        BIGINT price
+        BIGINT stock
+        TINYINT rank
+        DATETIME top_date
+        DATETIME created_at
+        DATETIME updated_at
+    }
+```
 
 - 상위 상품(Bestseller)는 초기에는 RDBMS 사용, 이후 Redis로 대체한다. (자주 조회되므로 캐싱 활용)
 - 결제는 외부 플랫폼 이용을 가정한다.
@@ -156,7 +273,9 @@ CREATE TABLE `point_history` (
 -- 베스트셀러
 CREATE TABLE `bestseller` (
     `bestseller_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `product_id` BIGINT UNSIGNED NOT NULL,
+    `name` VARCHAR(50) NOT NULL,
+    `price` BIGINT NOT NULL,
+    `stock` BIGINT NOT NULL,
     `rank` TINYINT NOT NULL,
     `top_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
