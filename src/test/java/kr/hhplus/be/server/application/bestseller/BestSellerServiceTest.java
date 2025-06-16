@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.bestseller;
 
+import kr.hhplus.be.server.common.exception.BestSellerNotFoundException;
 import kr.hhplus.be.server.domain.bestseller.BestSeller;
 import kr.hhplus.be.server.infrastructure.persistence.bestseller.BestSellerRepository;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,33 @@ class BestSellerServiceTest {
     }
 
     @Test
+    void 시간이_다른_같은_날짜의_상품을_조회한다() {
+        // given
+        LocalDateTime searchTime = LocalDateTime.of(2024, 3, 18, 15, 30, 0);
+        LocalDateTime storedTime = LocalDateTime.of(2024, 3, 18, 0, 0, 0);
+        
+        List<BestSeller> expectedBestSellers = Arrays.asList(
+            BestSeller.builder().id(1L).productId(101L).rank(1L).topDate(storedTime).build(),
+            BestSeller.builder().id(2L).productId(102L).rank(2L).topDate(storedTime).build(),
+            BestSeller.builder().id(3L).productId(103L).rank(3L).topDate(storedTime).build(),
+            BestSeller.builder().id(4L).productId(104L).rank(4L).topDate(storedTime).build(),
+            BestSeller.builder().id(5L).productId(105L).rank(5L).topDate(storedTime).build()
+        );
+        
+        given(bestSellerRepository.findByTopDateOrderByRankAsc(searchTime))
+            .willReturn(expectedBestSellers);
+
+        // when
+        List<BestSeller> actualBestSellers = bestSellerService.getTopProducts(searchTime);
+
+        // then
+        assertNotNull(actualBestSellers);
+        assertEquals(5, actualBestSellers.size());
+        assertEquals(1L, actualBestSellers.get(0).getRank());
+        assertEquals(5L, actualBestSellers.get(4).getRank());
+    }
+
+    @Test
     void 존재하지_않는_날짜의_상품을_조회하면_예외가_발생한다() {
         // given
         LocalDateTime nonExistentDate = LocalDateTime.now().plusDays(1);
@@ -57,7 +85,7 @@ class BestSellerServiceTest {
                 .willReturn(Collections.emptyList());
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BestSellerNotFoundException.class, () -> {
             bestSellerService.getTopProducts(nonExistentDate);
         });
     }
