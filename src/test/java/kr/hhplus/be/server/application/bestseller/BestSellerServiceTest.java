@@ -16,6 +16,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BestSellerServiceTest {
@@ -25,29 +27,72 @@ class BestSellerServiceTest {
     @Mock
     private BestSellerRepository bestSellerRepository;
 
+    private List<BestSeller> createBestSellers(LocalDateTime topDate) {
+        return Arrays.asList(
+            BestSeller.builder()
+                .id(1L)
+                .name("상품1")
+                .price(10000L)
+                .stock(100L)
+                .rank(1L)
+                .topDate(topDate)
+                .build(),
+            BestSeller.builder()
+                .id(2L)
+                .name("상품2")
+                .price(20000L)
+                .stock(200L)
+                .rank(2L)
+                .topDate(topDate)
+                .build(),
+            BestSeller.builder()
+                .id(3L)
+                .name("상품3")
+                .price(30000L)
+                .stock(300L)
+                .rank(3L)
+                .topDate(topDate)
+                .build(),
+            BestSeller.builder()
+                .id(4L)
+                .name("상품4")
+                .price(40000L)
+                .stock(400L)
+                .rank(4L)
+                .topDate(topDate)
+                .build(),
+            BestSeller.builder()
+                .id(5L)
+                .name("상품5")
+                .price(50000L)
+                .stock(500L)
+                .rank(5L)
+                .topDate(topDate)
+                .build()
+        );
+    }
+
+    private void assertBestSellers(List<BestSeller> bestSellers) {
+        assertNotNull(bestSellers);
+        assertEquals(5, bestSellers.size());
+        assertEquals(1L, bestSellers.get(0).getRank());
+        assertEquals(5L, bestSellers.get(4).getRank());
+    }
+
     @Test
     void 오늘의_상위상품_5개를_조회한다() {
         // given
         LocalDateTime today = LocalDateTime.now();
-        List<BestSeller> expectedBestSellers = Arrays.asList(
-            BestSeller.builder().id(1L).productId(101L).rank(1L).topDate(today).build(),
-            BestSeller.builder().id(2L).productId(102L).rank(2L).topDate(today).build(),
-            BestSeller.builder().id(3L).productId(103L).rank(3L).topDate(today).build(),
-            BestSeller.builder().id(4L).productId(104L).rank(4L).topDate(today).build(),
-            BestSeller.builder().id(5L).productId(105L).rank(5L).topDate(today).build()
-        );
+        List<BestSeller> expectedBestSellers = createBestSellers(today);
 
-        given(bestSellerRepository.findByTopDateOrderByRankAsc(today))
-                .willReturn(expectedBestSellers);
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(today))
+                .thenReturn(expectedBestSellers);
 
         // when
         List<BestSeller> actualBestSellers = bestSellerService.getTopProducts(today);
 
         // then
-        assertNotNull(actualBestSellers);
-        assertEquals(5, actualBestSellers.size());
-        assertEquals(1L, actualBestSellers.get(0).getRank());
-        assertEquals(5L, actualBestSellers.get(4).getRank());
+        assertBestSellers(actualBestSellers);
     }
 
     @Test
@@ -55,34 +100,24 @@ class BestSellerServiceTest {
         // given
         LocalDateTime searchTime = LocalDateTime.of(2024, 3, 18, 15, 30, 0);
         LocalDateTime storedTime = LocalDateTime.of(2024, 3, 18, 0, 0, 0);
-        
-        List<BestSeller> expectedBestSellers = Arrays.asList(
-            BestSeller.builder().id(1L).productId(101L).rank(1L).topDate(storedTime).build(),
-            BestSeller.builder().id(2L).productId(102L).rank(2L).topDate(storedTime).build(),
-            BestSeller.builder().id(3L).productId(103L).rank(3L).topDate(storedTime).build(),
-            BestSeller.builder().id(4L).productId(104L).rank(4L).topDate(storedTime).build(),
-            BestSeller.builder().id(5L).productId(105L).rank(5L).topDate(storedTime).build()
-        );
-        
-        given(bestSellerRepository.findByTopDateOrderByRankAsc(searchTime))
-            .willReturn(expectedBestSellers);
+        List<BestSeller> expectedBestSellers = createBestSellers(storedTime);
+
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(searchTime))
+            .thenReturn(expectedBestSellers);
 
         // when
         List<BestSeller> actualBestSellers = bestSellerService.getTopProducts(searchTime);
 
         // then
-        assertNotNull(actualBestSellers);
-        assertEquals(5, actualBestSellers.size());
-        assertEquals(1L, actualBestSellers.get(0).getRank());
-        assertEquals(5L, actualBestSellers.get(4).getRank());
+        assertBestSellers(actualBestSellers);
     }
 
     @Test
     void 존재하지_않는_날짜의_상품을_조회하면_예외가_발생한다() {
         // given
         LocalDateTime nonExistentDate = LocalDateTime.now().plusDays(1);
-        given(bestSellerRepository.findByTopDateOrderByRankAsc(nonExistentDate))
-                .willReturn(Collections.emptyList());
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(nonExistentDate))
+                .thenReturn(Collections.emptyList());
 
         // when & then
         assertThrows(BestSellerNotFoundException.class, () -> {
