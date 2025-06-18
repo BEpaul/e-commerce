@@ -112,7 +112,7 @@ erDiagram
         VARCHAR name
         BIGINT price
         BIGINT stock
-        TINYINT rank
+        TINYINT ranking
         DATETIME top_date
         DATETIME created_at
         DATETIME updated_at
@@ -134,7 +134,7 @@ erDiagram
 
 
 ### 💡 상위 상품 순위
-- `rank`: 상위 상품 순위 (1~5)
+- `ranking`: 상위 상품 순위 (1~5)
 
 
 ### 💡 포인트 이력 타입
@@ -277,7 +277,7 @@ CREATE TABLE `bestseller` (
     `name` VARCHAR(50) NOT NULL,
     `price` BIGINT NOT NULL,
     `stock` BIGINT NOT NULL,
-    `rank` TINYINT NOT NULL,
+    `ranking` TINYINT NOT NULL,
     `top_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
