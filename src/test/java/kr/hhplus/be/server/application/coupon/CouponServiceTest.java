@@ -8,6 +8,8 @@ import kr.hhplus.be.server.domain.coupon.DiscountType;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponListResponse;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +18,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,5 +163,95 @@ class CouponServiceTest {
 
         then(couponRepository).should(times(1)).findById(couponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
+    }
+
+    @Test
+    void 사용자의_쿠폰_목록이_정상적으로_조회된다() {
+        // given
+        Long secondCouponId = 201L;
+        UserCoupon secondUserCoupon = UserCoupon.builder()
+            .id(2L)
+            .userId(userId)
+            .couponId(secondCouponId)
+            .isUsed(false)
+            .expiredAt(LocalDateTime.now().plusDays(14))
+            .build();
+
+        Coupon secondCoupon = Coupon.builder()
+            .id(secondCouponId)
+            .discountValue(20L)
+            .discountType(DiscountType.PERCENT)
+            .title("여름 맞이 할인 쿠폰")
+            .stock(50L)
+            .startDate(LocalDateTime.now())
+            .endDate(LocalDateTime.now().plusDays(60))
+            .build();
+
+        List<UserCoupon> userCoupons = Arrays.asList(userCoupon, secondUserCoupon);
+        given(userCouponRepository.findUnusedByUserId(userId)).willReturn(userCoupons);
+        given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
+        given(couponRepository.findById(secondCouponId)).willReturn(Optional.of(secondCoupon));
+
+        // when
+        CouponListResponse response = couponService.getUserCoupons(userId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getCoupons()).hasSize(2);
+        
+        List<CouponResponse> coupons = response.getCoupons();
+        assertThat(coupons.get(0).getId()).isEqualTo(couponId);
+        assertThat(coupons.get(0).getTitle()).isEqualTo("신규 가입 쿠폰");
+        assertThat(coupons.get(0).getDiscountType()).isEqualTo(DiscountType.AMOUNT);
+        assertThat(coupons.get(0).getDiscountValue()).isEqualTo(10000L);
+        
+        assertThat(coupons.get(1).getId()).isEqualTo(secondCouponId);
+        assertThat(coupons.get(1).getTitle()).isEqualTo("여름 맞이 할인 쿠폰");
+        assertThat(coupons.get(1).getDiscountType()).isEqualTo(DiscountType.PERCENT);
+        assertThat(coupons.get(1).getDiscountValue()).isEqualTo(20L);
+
+        then(userCouponRepository).should(times(1)).findUnusedByUserId(userId);
+        then(couponRepository).should(times(1)).findById(couponId);
+        then(couponRepository).should(times(1)).findById(secondCouponId);
+    }
+
+    @Test
+    void 사용자의_사용_가능한_쿠폰_목록이_없는_경우_빈_배열이_반환된다() {
+        // given
+        given(userCouponRepository.findUnusedByUserId(userId)).willReturn(Collections.emptyList());
+
+        // when
+        CouponListResponse response = couponService.getUserCoupons(userId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getCoupons()).isEmpty();
+
+        then(userCouponRepository).should(times(1)).findUnusedByUserId(userId);
+        then(couponRepository).should(never()).findById(any());
+    }
+
+    @Test
+    void 사용한_쿠폰은_조회되지_않는다() {
+        // given
+        UserCoupon usedCoupon = UserCoupon.builder()
+            .id(1L)
+            .userId(userId)
+            .couponId(couponId)
+            .isUsed(true)
+            .expiredAt(LocalDateTime.now().plusDays(7))
+            .build();
+
+        given(userCouponRepository.findUnusedByUserId(userId)).willReturn(Collections.emptyList());
+
+        // when
+        CouponListResponse response = couponService.getUserCoupons(userId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getCoupons()).isEmpty();
+
+        then(userCouponRepository).should(times(1)).findUnusedByUserId(userId);
+        then(couponRepository).should(never()).findById(any());
     }
 } 
