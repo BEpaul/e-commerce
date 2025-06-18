@@ -37,8 +37,10 @@ public class OrderService {
     public Order createOrder(Order order, List<OrderProduct> orderProducts) {
         validateOrderProducts(orderProducts);
 
+        decreaseProductStocks(orderProducts);
         long totalPrice = calculateTotalPrice(orderProducts);
-        totalPrice = applyCouponIfExists(order, totalPrice);
+        totalPrice = calculateDiscountedPrice(order, totalPrice);
+        processCouponUsage(order);
 
         Order savedOrder = saveOrder(order, totalPrice);
         processPayment(savedOrder, totalPrice);
@@ -54,22 +56,34 @@ public class OrderService {
     }
 
     private long calculateTotalPrice(List<OrderProduct> orderProducts) {
-        long totalPrice = 0L;
+        return orderProducts.stream()
+                .mapToLong(it -> {
+                    Product product = productService.getProduct(it.getProductId());
+                    return product.getPrice() * it.getQuantity();
+                })
+                .sum();
+    }
+
+    private void decreaseProductStocks(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
             Product product = productService.getProduct(orderProduct.getProductId());
             product.decreaseStock(orderProduct.getQuantity());
-            totalPrice += product.getPrice() * orderProduct.getQuantity();
         }
-        return totalPrice;
     }
 
-    private long applyCouponIfExists(Order order, long totalPrice) {
-        if (order.getUserCouponId() != null) {
-            totalPrice = couponService.calculateDiscountPrice(order.getUserCouponId(), totalPrice);
-            couponService.useCoupon(order.getUserCouponId());
-            order.applyCoupon();
+    private long calculateDiscountedPrice(Order order, long totalPrice) {
+        if (order.getUserCouponId() == null) {
+            return totalPrice;
         }
-        return totalPrice;
+        return couponService.calculateDiscountPrice(order.getUserCouponId(), totalPrice);
+    }
+
+    private void processCouponUsage(Order order) {
+        if (order.getUserCouponId() == null) {
+            return;
+        }
+        couponService.useCoupon(order.getUserCouponId());
+        order.applyCoupon();
     }
 
     private Order saveOrder(Order order, long totalPrice) {
