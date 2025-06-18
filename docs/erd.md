@@ -178,6 +178,7 @@ CREATE TABLE `coupon` (
     `discount_type` ENUM('AMOUNT', 'PERCENT') NOT NULL,
     `title` VARCHAR(50) NOT NULL,
     `stock` BIGINT NOT NULL,
+    `version` BIGINT NOT NULL DEFAULT 0,
     `start_date` DATETIME NOT NULL,
     `end_date` DATETIME NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
