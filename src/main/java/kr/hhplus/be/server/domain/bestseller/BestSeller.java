@@ -21,16 +21,16 @@ public class BestSeller extends BaseTimeEntity {
     private String name;
     private Long price;
     private Long stock;
-    private Long rank;
+    private Long ranking;
     private LocalDateTime topDate;
 
     @Builder
-    public BestSeller(Long id, String name, Long price, Long stock, Long rank, LocalDateTime topDate) {
+    public BestSeller(Long id, String name, Long price, Long stock, Long ranking, LocalDateTime topDate) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.rank = rank;
+        this.ranking = ranking;
         this.topDate = topDate;
     }
 }

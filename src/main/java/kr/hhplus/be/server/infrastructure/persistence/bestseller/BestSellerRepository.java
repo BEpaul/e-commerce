@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface BestSellerRepository extends JpaRepository<BestSeller, Long> {
-    @Query("SELECT b FROM BestSeller b WHERE DATE(b.topDate) = DATE(:date) ORDER BY b.rank ASC")
-    List<BestSeller> findByTopDateOrderByRankAsc(@Param("date") LocalDateTime date);
+    @Query("SELECT b FROM BestSeller b WHERE DATE(b.topDate) = DATE(:date) ORDER BY b.ranking ASC")
+    List<BestSeller> findByTopDateOrderByRankingAsc(@Param("date") LocalDateTime date);
 }
