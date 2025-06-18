@@ -41,7 +41,7 @@ public class BestSellerControllerTest {
                 .name("메론킥")
                 .price(3000L)
                 .stock(100L)
-                .rank(1L)
+                .ranking(1L)
                 .topDate(LocalDateTime.now())
                 .build(),
             BestSeller.builder()
@@ -49,7 +49,7 @@ public class BestSellerControllerTest {
                 .name("엄마손")
                 .price(2000L)
                 .stock(50L)
-                .rank(2L)
+                .ranking(2L)
                 .topDate(LocalDateTime.now())
                 .build(),
             BestSeller.builder()
@@ -57,7 +57,7 @@ public class BestSellerControllerTest {
                 .name("깡깡깡")
                 .price(500L)
                 .stock(1000L)
-                .rank(3L)
+                .ranking(3L)
                 .topDate(LocalDateTime.now())
                 .build(),
             BestSeller.builder()
@@ -65,7 +65,7 @@ public class BestSellerControllerTest {
                 .name("스파게티")
                 .price(10000L)
                 .stock(30L)
-                .rank(4L)
+                .ranking(4L)
                 .topDate(LocalDateTime.now())
                 .build(),
             BestSeller.builder()
@@ -73,7 +73,7 @@ public class BestSellerControllerTest {
                 .name("한우")
                 .price(300000L)
                 .stock(5L)
-                .rank(5L)
+                .ranking(5L)
                 .topDate(LocalDateTime.now())
                 .build()
         );
@@ -95,26 +95,26 @@ public class BestSellerControllerTest {
             .andExpect(jsonPath("$.data[0].name").value("메론킥"))
             .andExpect(jsonPath("$.data[0].price").value(3000))
             .andExpect(jsonPath("$.data[0].stock").value(100))
-            .andExpect(jsonPath("$.data[0].rank").value(1))
+            .andExpect(jsonPath("$.data[0].ranking").value(1))
             .andExpect(jsonPath("$.data[1].id").value(2))
             .andExpect(jsonPath("$.data[1].name").value("엄마손"))
             .andExpect(jsonPath("$.data[1].price").value(2000))
             .andExpect(jsonPath("$.data[1].stock").value(50))
-            .andExpect(jsonPath("$.data[1].rank").value(2))
+            .andExpect(jsonPath("$.data[1].ranking").value(2))
             .andExpect(jsonPath("$.data[2].id").value(3))
             .andExpect(jsonPath("$.data[2].name").value("깡깡깡"))
             .andExpect(jsonPath("$.data[2].price").value(500))
             .andExpect(jsonPath("$.data[2].stock").value(1000))
-            .andExpect(jsonPath("$.data[2].rank").value(3))
+            .andExpect(jsonPath("$.data[2].ranking").value(3))
             .andExpect(jsonPath("$.data[3].id").value(4))
             .andExpect(jsonPath("$.data[3].name").value("스파게티"))
             .andExpect(jsonPath("$.data[3].price").value(10000))
             .andExpect(jsonPath("$.data[3].stock").value(30))
-            .andExpect(jsonPath("$.data[3].rank").value(4))
+            .andExpect(jsonPath("$.data[3].ranking").value(4))
             .andExpect(jsonPath("$.data[4].id").value(5))
             .andExpect(jsonPath("$.data[4].name").value("한우"))
             .andExpect(jsonPath("$.data[4].price").value(300000))
             .andExpect(jsonPath("$.data[4].stock").value(5))
-            .andExpect(jsonPath("$.data[4].rank").value(5));
+            .andExpect(jsonPath("$.data[4].ranking").value(5));
     }
 }

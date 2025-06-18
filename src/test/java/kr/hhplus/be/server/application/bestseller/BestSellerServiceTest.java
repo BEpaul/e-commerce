@@ -34,7 +34,7 @@ class BestSellerServiceTest {
                 .name("상품1")
                 .price(10000L)
                 .stock(100L)
-                .rank(1L)
+                .ranking(1L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
@@ -42,7 +42,7 @@ class BestSellerServiceTest {
                 .name("상품2")
                 .price(20000L)
                 .stock(200L)
-                .rank(2L)
+                .ranking(2L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
@@ -50,7 +50,7 @@ class BestSellerServiceTest {
                 .name("상품3")
                 .price(30000L)
                 .stock(300L)
-                .rank(3L)
+                .ranking(3L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
@@ -58,7 +58,7 @@ class BestSellerServiceTest {
                 .name("상품4")
                 .price(40000L)
                 .stock(400L)
-                .rank(4L)
+                .ranking(4L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
@@ -66,7 +66,7 @@ class BestSellerServiceTest {
                 .name("상품5")
                 .price(50000L)
                 .stock(500L)
-                .rank(5L)
+                .ranking(5L)
                 .topDate(topDate)
                 .build()
         );
@@ -75,8 +75,8 @@ class BestSellerServiceTest {
     private void assertBestSellers(List<BestSeller> bestSellers) {
         assertNotNull(bestSellers);
         assertEquals(5, bestSellers.size());
-        assertEquals(1L, bestSellers.get(0).getRank());
-        assertEquals(5L, bestSellers.get(4).getRank());
+        assertEquals(1L, bestSellers.get(0).getRanking());
+        assertEquals(5L, bestSellers.get(4).getRanking());
     }
 
     @Test
@@ -85,7 +85,7 @@ class BestSellerServiceTest {
         LocalDateTime today = LocalDateTime.now();
         List<BestSeller> expectedBestSellers = createBestSellers(today);
 
-        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(today))
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankingAsc(today))
                 .thenReturn(expectedBestSellers);
 
         // when
@@ -102,7 +102,7 @@ class BestSellerServiceTest {
         LocalDateTime storedTime = LocalDateTime.of(2024, 3, 18, 0, 0, 0);
         List<BestSeller> expectedBestSellers = createBestSellers(storedTime);
 
-        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(searchTime))
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankingAsc(searchTime))
             .thenReturn(expectedBestSellers);
 
         // when
@@ -116,7 +116,7 @@ class BestSellerServiceTest {
     void 존재하지_않는_날짜의_상품을_조회하면_예외가_발생한다() {
         // given
         LocalDateTime nonExistentDate = LocalDateTime.now().plusDays(1);
-        lenient().when(bestSellerRepository.findByTopDateOrderByRankAsc(nonExistentDate))
+        lenient().when(bestSellerRepository.findByTopDateOrderByRankingAsc(nonExistentDate))
                 .thenReturn(Collections.emptyList());
 
         // when & then

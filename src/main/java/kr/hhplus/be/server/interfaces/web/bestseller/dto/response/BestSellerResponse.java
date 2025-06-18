@@ -11,7 +11,7 @@ public class BestSellerResponse {
     private String name;
     private Long price;
     private Long stock;
-    private Long rank;
+    private Long ranking;
 
     public static BestSellerResponse from(BestSeller bestSeller) {
         return BestSellerResponse.builder()
@@ -19,7 +19,7 @@ public class BestSellerResponse {
                 .name(bestSeller.getName())
                 .price(bestSeller.getPrice())
                 .stock(bestSeller.getStock())
-                .rank(bestSeller.getRank())
+                .ranking(bestSeller.getRanking())
                 .build();
     }
 }

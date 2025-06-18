@@ -18,7 +18,7 @@ public class BestSellerService {
 
     @Transactional(readOnly = true)
     public List<BestSeller> getTopProducts(LocalDateTime date) {
-        List<BestSeller> bestSellers = bestSellerRepository.findByTopDateOrderByRankAsc(date);
+        List<BestSeller> bestSellers = bestSellerRepository.findByTopDateOrderByRankingAsc(date);
         
         if (bestSellers.isEmpty()) {
             throw new BestSellerNotFoundException("해당 날짜의 베스트셀러 데이터가 존재하지 않습니다.");
