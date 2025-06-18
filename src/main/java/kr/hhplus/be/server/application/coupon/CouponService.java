@@ -7,10 +7,15 @@ import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponListResponse;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +39,10 @@ public class CouponService {
         Coupon coupon = findCouponById(userCoupon.getCouponId());
         return coupon.apply(totalPrice);
     }
-    
+
+    /**
+     * 쿠폰 발급
+     */
     @Transactional
     public UserCoupon issueCoupon(Long userId, Long couponId) {
         Coupon coupon = findCouponById(couponId);
@@ -52,6 +60,27 @@ public class CouponService {
         } catch (OptimisticLockingFailureException e) {
             throw new OutOfStockCouponException("다른 사용자가 먼저 쿠폰을 발급받았습니다.");
         }
+    }
+
+    /**
+     * 사용자가 보유한 쿠폰 목록을 조회
+     */
+    @Transactional(readOnly = true)
+    public CouponListResponse getUserCoupons(Long userId) {
+        List<UserCoupon> userCoupons = userCouponRepository.findUnusedByUserId(userId);
+
+        if (userCoupons.isEmpty()) {
+            return CouponListResponse.of(List.of());
+        }
+
+        List<CouponResponse> couponResponses = userCoupons.stream()
+                .map(userCoupon -> {
+                    Coupon coupon = findCouponById(userCoupon.getCouponId());
+                    return CouponResponse.of(userCoupon, coupon);
+                })
+                .collect(Collectors.toList());
+
+        return CouponListResponse.of(couponResponses);
     }
 
     private UserCoupon findUserCouponById(Long userCouponId) {
