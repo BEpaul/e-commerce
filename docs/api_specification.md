@@ -326,16 +326,16 @@ example:
 
 ### **Response**
 
-| Field     | Type   | Description       |
-|-----------|--------|-------------------|
-| code     | Number | 응답 코드  |
-| message  | String | 응답 메시지 |
-| data.bestsellers | Array  | 상위 상품 목록 |
-| data.bestsellers[].id | Number | 상품 ID |
-| data.bestsellers[].name | String | 상품 이름 |
-| data.bestsellers[].price | Number | 상품 가격 |
-| data.bestsellers[].stock | Number | 상품 잔여 수량 |
-| data.bestsellers[].rank | Number | 상위 상품 순위 (1~5) |
+| Field                      | Type   | Description       |
+|----------------------------|--------|-------------------|
+| code                       | Number | 응답 코드  |
+| message                    | String | 응답 메시지 |
+| data.bestsellers           | Array  | 상위 상품 목록 |
+| data.bestsellers[].id      | Number | 상품 ID |
+| data.bestsellers[].name    | String | 상품 이름 |
+| data.bestsellers[].price   | Number | 상품 가격 |
+| data.bestsellers[].stock   | Number | 상품 잔여 수량 |
+| data.bestsellers[].ranking | Number | 상위 상품 순위 (1~5) |
 
 example:
 ```json
@@ -349,14 +349,14 @@ example:
         "name": "상품 A",
         "price": 10000,
         "stock": 50,
-        "rank": 1
+        "ranking": 1
       },
       {
         "id": 2,
         "name": "상품 B",
         "price": 20000,
         "stock": 30,
-        "rank": 2
+        "ranking": 2
       }
     ]
   }
