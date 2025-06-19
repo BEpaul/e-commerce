@@ -11,6 +11,8 @@ import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponListResponse
 import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,11 @@ public class CouponService {
      * 쿠폰 발급
      */
     @Transactional
+    @Retryable(
+            value = OptimisticLockingFailureException.class,
+            maxAttempts = 5, // 최대 5번 재시도
+            backoff = @Backoff(delay = 10) // 재시도 간 50ms 대기
+    )
     public UserCoupon issueCoupon(Long userId, Long couponId) {
         Coupon coupon = findCouponById(couponId);
 
@@ -51,15 +58,11 @@ public class CouponService {
             throw new OutOfStockCouponException("쿠폰 재고가 부족합니다.");
         }
 
-        try {
-            coupon.decreaseStock();
-            couponRepository.save(coupon);
-            
-            UserCoupon userCoupon = UserCoupon.of(userId, couponId);
-            return userCouponRepository.save(userCoupon);
-        } catch (OptimisticLockingFailureException e) {
-            throw new OutOfStockCouponException("다른 사용자가 먼저 쿠폰을 발급받았습니다.");
-        }
+        coupon.decreaseStock();
+        couponRepository.save(coupon);
+        
+        UserCoupon userCoupon = UserCoupon.of(userId, couponId);
+        return userCouponRepository.save(userCoupon);
     }
 
     /**
