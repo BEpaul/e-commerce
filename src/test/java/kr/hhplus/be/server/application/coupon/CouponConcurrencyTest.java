@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Transactional
 @ActiveProfiles("test")
 class CouponConcurrencyTest {
 
@@ -39,6 +38,7 @@ class CouponConcurrencyTest {
     private static final int THREAD_COUNT = 200;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         coupon = Coupon.builder()
                 .discountValue(1000L)
