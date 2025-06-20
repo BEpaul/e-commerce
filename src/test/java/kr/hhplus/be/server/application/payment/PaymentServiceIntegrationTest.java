@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.common.exception.DuplicatePaymentException;
 import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
+import kr.hhplus.be.server.common.exception.PaymentProcessException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
@@ -54,10 +55,9 @@ class PaymentServiceIntegrationTest {
             given(dataPlatform.sendData(any())).willReturn(true);
 
             // when
-            boolean result = paymentService.processPayment(payment);
+            paymentService.processPayment(payment);
 
             // then
-            assertThat(result).isTrue();
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
         }
 
@@ -72,16 +72,14 @@ class PaymentServiceIntegrationTest {
         }
 
         @Test
-        void 외부_결제_플랫폼_응답이_실패하면_결제가_취소된다() {
+        void 외부_결제_플랫폼_응답이_실패하면_결제가_취소되고_예외가_발생한다() {
             // given
             Payment payment = Payment.create(orderId, PaymentMethod.POINT, amount);
             given(dataPlatform.sendData(any())).willReturn(false);
 
-            // when
-            boolean result = paymentService.processPayment(payment);
-
-            // then
-            assertThat(result).isFalse();
+            // when & then
+            assertThatThrownBy(() -> paymentService.processPayment(payment))
+                    .isInstanceOf(PaymentProcessException.class);
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
         }
 

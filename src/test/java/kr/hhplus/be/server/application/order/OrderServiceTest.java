@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,14 +95,14 @@ class OrderServiceTest {
         @Test
         void 주문이_성공적으로_생성된다() {
             // given
-            given(paymentService.processPayment(any())).willReturn(true);
+            doNothing().when(paymentService).processPayment(any());
 
             // when
             Order result = orderService.createOrder(order, orderProducts);
 
             // then
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(OrderStatus.DONE);
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             then(orderRepository).should().save(order);
             then(orderProductRepository).should().save(any(OrderProduct.class));
             then(pointService).should().usePoint(order.getUserId(), 20000L);
@@ -114,14 +116,14 @@ class OrderServiceTest {
                 .userCouponId(1L)
                 .build();
             given(couponService.calculateDiscountPrice(1L, 20000L)).willReturn(15000L);
-            given(paymentService.processPayment(any())).willReturn(true);
+            doNothing().when(paymentService).processPayment(any());
 
             // when
             Order result = orderService.createOrder(order, orderProducts);
 
             // then
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(OrderStatus.DONE);
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             then(couponService).should().useCoupon(1L);
             then(pointService).should().usePoint(order.getUserId(), 15000L);
         }
@@ -129,7 +131,8 @@ class OrderServiceTest {
         @Test
         void 결제가_실패하면_예외가_발생한다() {
             // given
-            given(paymentService.processPayment(any())).willReturn(false);
+            doThrow(new FailedPaymentException("결제에 실패했습니다."))
+                .when(paymentService).processPayment(any());
 
             // when & then
             assertThatThrownBy(() -> orderService.createOrder(order, orderProducts))

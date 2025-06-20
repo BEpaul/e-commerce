@@ -46,6 +46,10 @@ public class Order {
     }
 
     public void success() {
-        this.status = OrderStatus.DONE;
+        this.status = OrderStatus.COMPLETED;
+    }
+
+    public void fail() {
+        this.status = OrderStatus.FAILED;
     }
 }

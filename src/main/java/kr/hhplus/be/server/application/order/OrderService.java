@@ -93,15 +93,15 @@ public class OrderService {
     }
 
     private void processPayment(Order order, long totalPrice) {
-        boolean result = paymentService.processPayment(
-            Payment.create(order.getId(), PaymentMethod.POINT, totalPrice)
-        );
-
-        if (!result) {
-            throw new FailedPaymentException("결제에 실패했습니다.");
+        try {
+            paymentService.processPayment(
+                Payment.create(order.getId(), PaymentMethod.POINT, totalPrice)
+            );
+            order.success();
+        } catch (Exception e) {
+            order.fail();
+            throw new FailedPaymentException("결제에 실패했습니다.", e);
         }
-
-        order.success();
     }
 
     private void saveOrderProducts(Order order, List<OrderProduct> orderProducts) {

@@ -124,7 +124,7 @@ class OrderServiceIntegrationTest {
 
             // then
             assertThat(savedOrder.getId()).isNotNull();
-            assertThat(savedOrder.getStatus()).isEqualTo(OrderStatus.DONE);
+            assertThat(savedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             assertThat(savedOrder.getTotalAmount()).isEqualTo(19000L); // 10000 * 2 - 1000(쿠폰)
             assertThat(savedOrder.isCouponApplied()).isTrue();
         }
@@ -158,6 +158,7 @@ class OrderServiceIntegrationTest {
             // when & then
             assertThatThrownBy(() -> orderService.createOrder(order, List.of(orderProduct)))
                     .isInstanceOf(FailedPaymentException.class);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);
         }
     }
 }
