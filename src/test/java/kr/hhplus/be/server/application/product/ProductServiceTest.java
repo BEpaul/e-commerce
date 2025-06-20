@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.product;
 
+import kr.hhplus.be.server.common.exception.NotFoundProductException;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.infrastructure.persistence.product.ProductRepository;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ class ProductServiceTest {
 
         // when & then
         assertThatThrownBy(() -> productService.getProduct(productId))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NotFoundProductException.class)
                 .hasMessage("상품이 존재하지 않습니다.");
     }
 
