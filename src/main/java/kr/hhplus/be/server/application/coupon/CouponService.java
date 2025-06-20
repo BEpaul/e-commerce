@@ -48,8 +48,8 @@ public class CouponService {
     @Transactional
     @Retryable(
             value = OptimisticLockingFailureException.class,
-            maxAttempts = 5, // 최대 5번 재시도
-            backoff = @Backoff(delay = 10) // 재시도 간 50ms 대기
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 10)
     )
     public UserCoupon issueCoupon(Long userId, Long couponId) {
         Coupon coupon = findCouponById(couponId);
