@@ -66,7 +66,7 @@ public class OrderService {
 
     private void decreaseProductStocks(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
-            Product product = productService.getProduct(orderProduct.getProductId());
+            Product product = productService.getProductWithPessimisticLock(orderProduct.getProductId());
             product.decreaseStock(orderProduct.getQuantity());
         }
     }

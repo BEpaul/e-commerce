@@ -22,4 +22,9 @@ public class OrderRepositoryImpl implements OrderRepository {
     public List<Order> findAll() {
         return orderJpaRepository.findAll();
     }
+
+    @Override
+    public void deleteAll() {
+        orderJpaRepository.deleteAll();
+    }
 }
