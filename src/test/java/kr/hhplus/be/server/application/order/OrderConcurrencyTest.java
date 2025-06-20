@@ -56,9 +56,9 @@ class OrderConcurrencyTest {
     @Transactional
     void setUp() {
         // 기존 데이터 정리
-        orderRepository.deleteAll();
-        productRepository.deleteAll();
-        pointRepository.deleteAll();
+        orderRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        pointRepository.deleteAllInBatch();
         
         // 상품 생성 - 재고 10개
         product = Product.builder()

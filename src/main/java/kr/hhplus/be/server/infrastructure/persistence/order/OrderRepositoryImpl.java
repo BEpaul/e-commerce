@@ -24,7 +24,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void deleteAll() {
-        orderJpaRepository.deleteAll();
+    public void deleteAllInBatch() {
+        orderJpaRepository.deleteAllInBatch();
     }
 }
