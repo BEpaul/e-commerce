@@ -1,10 +1,11 @@
 package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
+import kr.hhplus.be.server.common.exception.PaymentProcessException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
-import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
+import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -49,29 +50,26 @@ class PaymentServiceTest {
         }
 
         @Test
-        void 결제가_성공하면_true를_반환하고_결제_상태를_APPROVED로_변경한다() {
+        void 결제가_성공하면_결제_상태를_APPROVED로_변경한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(true);
 
             // when
-            boolean result = paymentService.processPayment(payment);
+            paymentService.processPayment(payment);
 
             // then
-            assertThat(result).isTrue();
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
             then(paymentRepository).should().save(payment);
         }
 
         @Test
-        void 결제가_실패하면_false를_반환하고_결제_상태를_CANCELED로_변경한다() {
+        void 결제가_실패하면_결제_상태를_CANCELED로_변경하고_예외가_발생한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(false);
 
-            // when
-            boolean result = paymentService.processPayment(payment);
-
-            // then
-            assertThat(result).isFalse();
+            // when & then
+            assertThatThrownBy(() -> paymentService.processPayment(payment))
+                .isInstanceOf(PaymentProcessException.class);
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
             then(paymentRepository).should().save(payment);
         }

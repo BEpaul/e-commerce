@@ -2,10 +2,12 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.common.exception.DuplicatePaymentException;
 import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
+import kr.hhplus.be.server.common.exception.PaymentProcessException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,27 +21,36 @@ public class PaymentService {
     /**
      * 결제 처리
      * 1. 중복 결제 체크
-     * 2. 외부 데이터 플랫폼에 결제 정보 전송
-     * 3. 결제 성공/실패에 따른 상태 업데이트
-     * 4. 결제 정보 저장
+     * 2. 결제 정보 저장
+     * 3. 비동기로 결제 처리 시작
      */
     @Transactional
-    public boolean processPayment(Payment payment) {
+    public void processPayment(Payment payment) {
         if (payment == null) {
             throw new NotExistPaymentInfoException("결제 정보가 없습니다.");
         }
 
         checkDuplicatePayment(payment);
-        boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
-        updatePaymentStatus(payment, isPaymentSuccess);
-        savePayment(payment);
-
-        return isPaymentSuccess;
+        processPaymentAsync(payment);
     }
 
     private void checkDuplicatePayment(Payment payment) {
         if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
             throw new DuplicatePaymentException("이미 처리된 결제 요청입니다.");
+        }
+    }
+
+    @Async
+    @Transactional
+    protected void processPaymentAsync(Payment payment) {
+        try {
+            boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
+            updatePaymentStatus(payment, isPaymentSuccess);
+            savePayment(payment);
+        } catch (Exception e) {
+            payment.cancel();
+            savePayment(payment);
+            throw new PaymentProcessException("결제 처리 중 오류가 발생했습니다.", e);
         }
     }
 

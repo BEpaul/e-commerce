@@ -31,7 +31,7 @@ public class Coupon {
     private Long version;
 
     @Builder
-    public Coupon(Long id, Long discountValue, DiscountType discountType, String title, Long stock, LocalDateTime startDate, LocalDateTime endDate) {
+    public Coupon(Long id, Long discountValue, DiscountType discountType, String title, Long stock, LocalDateTime startDate, LocalDateTime endDate, Long version) {
         this.id = id;
         this.discountValue = discountValue;
         this.discountType = discountType;
@@ -39,6 +39,7 @@ public class Coupon {
         this.stock = stock;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.version = version;
     }
 
     public Long apply(Long productPrice) {

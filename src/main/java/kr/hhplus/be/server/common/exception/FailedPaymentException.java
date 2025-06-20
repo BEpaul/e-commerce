@@ -4,4 +4,8 @@ public class FailedPaymentException extends RuntimeException {
     public FailedPaymentException(String message) {
         super(message);
     }
+
+    public FailedPaymentException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
