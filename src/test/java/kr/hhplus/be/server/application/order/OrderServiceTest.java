@@ -83,6 +83,7 @@ class OrderServiceTest {
                 .description("상품 설명")
                 .build();
             lenient().when(productService.getProduct(1L)).thenReturn(product);
+            lenient().when(productService.getProductWithPessimisticLock(1L)).thenReturn(product);
             lenient().when(orderRepository.save(any(Order.class))).thenReturn(order);
         }
 

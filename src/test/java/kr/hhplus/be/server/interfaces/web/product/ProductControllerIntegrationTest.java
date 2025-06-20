@@ -35,6 +35,9 @@ class ProductControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // 기존 데이터 정리
+        productRepository.deleteAll();
+
         // 테스트 데이터 초기화
         Product product = Product.builder()
                 .name("테스트 상품")

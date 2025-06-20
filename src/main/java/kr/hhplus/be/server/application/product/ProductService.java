@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.product;
 
+import kr.hhplus.be.server.common.exception.NotFoundProductException;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.infrastructure.persistence.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class ProductService {
      */
     public Product getProduct(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundProductException("상품이 존재하지 않습니다."));
 
     }
 
@@ -29,5 +30,14 @@ public class ProductService {
      */
     public List<Product> getProducts() {
         return productRepository.findAll();
+    }
+
+    /**
+     * 비관적 락을 사용한 상품 조회 (재고 차감용)
+     */
+    @Transactional
+    public Product getProductWithPessimisticLock(Long productId) {
+        return productRepository.findByIdWithPessimisticLock(productId)
+                .orElseThrow(() -> new NotFoundProductException("상품이 존재하지 않습니다."));
     }
 }
