@@ -121,7 +121,7 @@ void 동시에_여러_사용자가_쿠폰을_발급받을_때_재고가_정확�
 
 ### 5.3 테스트 결과
 
-<img src="images/k6_coupon.png" alt="잔액 충전 시퀀스 다이어그램" width="70%" height="auto">
+<img src="images/k6_coupon.png" alt="[쿠폰 발급 성능 테스트 결과]" width="70%" height="auto">
 
 #### ✅ 성공 지표
 
