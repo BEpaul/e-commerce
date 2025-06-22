@@ -1,10 +1,6 @@
 package kr.hhplus.be.server.application.point;
 
-import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
-import kr.hhplus.be.server.common.exception.NegativeChargePointException;
-import kr.hhplus.be.server.common.exception.NegativeUsePointException;
-import kr.hhplus.be.server.common.exception.NotEnoughPointException;
-import kr.hhplus.be.server.common.exception.NotFoundUserException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.point.Point;
 import kr.hhplus.be.server.infrastructure.persistence.point.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @ExtendWith(MockitoExtension.class)
 class PointServiceTest {
@@ -64,7 +61,8 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.chargePoint(userId, negativeAmount))
-                .isInstanceOf(NegativeChargePointException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(NEGATIVE_CHARGE_POINT.getMessage());
     }
 
     @Test
@@ -77,7 +75,8 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.chargePoint(userId, chargeAmount))
-                .isInstanceOf(ExceedsMaximumPointException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(EXCEEDS_MAXIMUM_POINT.getMessage());
     }
 
     @Test
@@ -103,7 +102,8 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.getPoint(nonExistentUserId))
-                .isInstanceOf(NotFoundUserException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(USER_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -130,7 +130,8 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.usePoint(userId, negativeAmount))
-                .isInstanceOf(NegativeUsePointException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(NEGATIVE_USE_POINT.getMessage());
     }
 
     @Test
@@ -141,7 +142,8 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.usePoint(userId, useAmount))
-                .isInstanceOf(NotEnoughPointException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(NOT_ENOUGH_POINT.getMessage());
     }
 
     @Test
@@ -153,6 +155,7 @@ class PointServiceTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.usePoint(nonExistentUserId, useAmount))
-                .isInstanceOf(NotFoundUserException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(USER_NOT_FOUND.getMessage());
     }
 }

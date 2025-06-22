@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
-import kr.hhplus.be.server.common.exception.PaymentProcessException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
@@ -19,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -45,8 +45,8 @@ class PaymentServiceTest {
         @Test
         void 결제_정보가_없으면_예외가_발생한다() {
             assertThatThrownBy(() -> paymentService.processPayment(null))
-                .isInstanceOf(NotExistPaymentInfoException.class)
-                .hasMessage("결제 정보가 없습니다.");
+                .isInstanceOf(ApiException.class)
+                .hasMessage(PAYMENT_INFO_NOT_EXIST.getMessage());
         }
 
         @Test
@@ -69,7 +69,8 @@ class PaymentServiceTest {
 
             // when & then
             assertThatThrownBy(() -> paymentService.processPayment(payment))
-                .isInstanceOf(PaymentProcessException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(PAYMENT_FAILED.getMessage());
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
             then(paymentRepository).should().save(payment);
         }

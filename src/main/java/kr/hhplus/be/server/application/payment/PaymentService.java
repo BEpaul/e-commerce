@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.common.exception.DuplicatePaymentException;
-import kr.hhplus.be.server.common.exception.NotExistPaymentInfoException;
-import kr.hhplus.be.server.common.exception.PaymentProcessException;
+import kr.hhplus.be.server.common.exception.*;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
@@ -10,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class PaymentService {
     @Transactional
     public void processPayment(Payment payment) {
         if (payment == null) {
-            throw new NotExistPaymentInfoException("결제 정보가 없습니다.");
+            throw new ApiException(PAYMENT_INFO_NOT_EXIST);
         }
 
         checkDuplicatePayment(payment);
@@ -36,7 +36,7 @@ public class PaymentService {
 
     private void checkDuplicatePayment(Payment payment) {
         if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
-            throw new DuplicatePaymentException("이미 처리된 결제 요청입니다.");
+            throw new ApiException(DUPLICATE_PAYMENT);
         }
     }
 
@@ -50,7 +50,7 @@ public class PaymentService {
         } catch (Exception e) {
             payment.cancel();
             savePayment(payment);
-            throw new PaymentProcessException("결제 처리 중 오류가 발생했습니다.", e);
+            throw new ApiException(PAYMENT_PROCESS_ERROR);
         }
     }
 

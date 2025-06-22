@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.bestseller;
 
-import kr.hhplus.be.server.common.exception.BestSellerNotFoundException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.bestseller.BestSeller;
 import kr.hhplus.be.server.infrastructure.persistence.bestseller.BestSellerRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class BestSellerService {
         List<BestSeller> bestSellers = bestSellerRepository.findByTopDateOrderByRankingAsc(date);
         
         if (bestSellers.isEmpty()) {
-            throw new BestSellerNotFoundException("해당 날짜의 베스트셀러 데이터가 존재하지 않습니다.");
+            throw new ApiException(BESTSELLER_NOT_FOUND);
         }
         
         return bestSellers;
