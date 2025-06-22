@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.coupon;
 
-import kr.hhplus.be.server.common.exception.NotFoundCouponException;
-import kr.hhplus.be.server.common.exception.NotOwnedUserCouponException;
-import kr.hhplus.be.server.common.exception.OutOfStockCouponException;
+import kr.hhplus.be.server.common.exception.*;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
@@ -18,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ public class CouponService {
         Coupon coupon = findCouponById(couponId);
 
         if (coupon.getStock() <= 0) {
-            throw new OutOfStockCouponException("쿠폰 재고가 부족합니다.");
+            throw new ApiException(OUT_OF_STOCK_COUPON);
         }
 
         coupon.decreaseStock();
@@ -88,11 +88,11 @@ public class CouponService {
 
     private UserCoupon findUserCouponById(Long userCouponId) {
         return userCouponRepository.findById(userCouponId)
-                .orElseThrow(() -> new NotOwnedUserCouponException("사용자가 갖고 있지 않은 쿠폰입니다."));
+                .orElseThrow(() -> new ApiException(NOT_OWNED_USER_COUPON));
     }
 
     private Coupon findCouponById(Long couponId) {
         return couponRepository.findById(couponId)
-                .orElseThrow(() -> new NotFoundCouponException("쿠폰이 존재하지 않습니다."));
+                .orElseThrow(() -> new ApiException(COUPON_NOT_FOUND));
     }
 }

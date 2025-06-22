@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.coupon;
 
-import kr.hhplus.be.server.common.exception.AlreadyUsedCouponException;
-import kr.hhplus.be.server.common.exception.NotOwnedUserCouponException;
-import kr.hhplus.be.server.common.exception.OutOfStockCouponException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.DiscountType;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
@@ -27,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @ExtendWith(MockitoExtension.class)
 class CouponServiceTest {
@@ -93,7 +92,8 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
-                .isInstanceOf(NotOwnedUserCouponException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(NOT_OWNED_USER_COUPON.getMessage());
 
         then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
@@ -116,8 +116,8 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(userCouponId))
-            .isInstanceOf(AlreadyUsedCouponException.class)
-            .hasMessage("이미 사용된 쿠폰입니다.");
+            .isInstanceOf(ApiException.class)
+            .hasMessage(ALREADY_USED_COUPON.getMessage());
 
         then(userCouponRepository).should(times(1)).findById(userCouponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));
@@ -159,7 +159,8 @@ class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(userId, couponId))
-                .isInstanceOf(OutOfStockCouponException.class);
+                .isInstanceOf(ApiException.class)
+                .hasMessage(OUT_OF_STOCK_COUPON.getMessage());
 
         then(couponRepository).should(times(1)).findById(couponId);
         then(userCouponRepository).should(never()).save(any(UserCoupon.class));

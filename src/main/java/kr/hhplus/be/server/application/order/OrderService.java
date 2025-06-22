@@ -4,8 +4,7 @@ import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.application.product.ProductService;
-import kr.hhplus.be.server.common.exception.FailedPaymentException;
-import kr.hhplus.be.server.common.exception.OrderProductEmptyException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
@@ -18,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class OrderService {
 
     private void validateOrderProducts(List<OrderProduct> orderProducts) {
         if (orderProducts == null || orderProducts.isEmpty()) {
-            throw new OrderProductEmptyException("주문 상품이 존재하지 않습니다.");
+            throw new ApiException(ORDER_PRODUCT_EMPTY);
         }
     }
 
@@ -100,7 +101,7 @@ public class OrderService {
             order.success();
         } catch (Exception e) {
             order.fail();
-            throw new FailedPaymentException("결제에 실패했습니다.", e);
+            throw new ApiException(PAYMENT_FAILED);
         }
     }
 

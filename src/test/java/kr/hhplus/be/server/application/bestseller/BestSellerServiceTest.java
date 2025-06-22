@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.bestseller;
 
-import kr.hhplus.be.server.common.exception.BestSellerNotFoundException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.bestseller.BestSeller;
 import kr.hhplus.be.server.infrastructure.persistence.bestseller.BestSellerRepository;
 import org.junit.jupiter.api.Test;
@@ -14,10 +14,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static kr.hhplus.be.server.common.exception.ErrorCode.BESTSELLER_NOT_FOUND;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BestSellerServiceTest {
@@ -120,8 +121,8 @@ class BestSellerServiceTest {
                 .thenReturn(Collections.emptyList());
 
         // when & then
-        assertThrows(BestSellerNotFoundException.class, () -> {
-            bestSellerService.getTopProducts(nonExistentDate);
-        });
+        assertThatThrownBy(() -> bestSellerService.getTopProducts(nonExistentDate))
+                .isInstanceOf(ApiException.class)
+                .hasMessage(BESTSELLER_NOT_FOUND.getMessage());
     }
 }

@@ -4,8 +4,7 @@ import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.application.product.ProductService;
-import kr.hhplus.be.server.common.exception.FailedPaymentException;
-import kr.hhplus.be.server.common.exception.OrderProductEmptyException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
@@ -23,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 
+import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +90,8 @@ class OrderServiceTest {
         @Test
         void 주문_상품이_없으면_예외가_발생한다() {
             assertThatThrownBy(() -> orderService.createOrder(order, new ArrayList<>()))
-                    .isInstanceOf(OrderProductEmptyException.class);
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage(ORDER_PRODUCT_EMPTY.getMessage());
         }
 
         @Test
@@ -132,12 +133,13 @@ class OrderServiceTest {
         @Test
         void 결제가_실패하면_예외가_발생한다() {
             // given
-            doThrow(new FailedPaymentException("결제에 실패했습니다."))
+            doThrow(new ApiException(PAYMENT_FAILED))
                 .when(paymentService).processPayment(any());
 
             // when & then
             assertThatThrownBy(() -> orderService.createOrder(order, orderProducts))
-                    .isInstanceOf(FailedPaymentException.class);
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage(PAYMENT_FAILED.getMessage());
         }
     }
 } 

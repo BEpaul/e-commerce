@@ -1,11 +1,13 @@
 package kr.hhplus.be.server.application.point;
 
-import kr.hhplus.be.server.common.exception.NotFoundUserException;
+import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.point.Point;
 import kr.hhplus.be.server.infrastructure.persistence.point.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static kr.hhplus.be.server.common.exception.ErrorCode.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,6 @@ public class PointService {
     // 중복 제거를 위한 private 메서드
     private Point findPointByUserId(Long userId) {
         return pointRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundUserException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(USER_NOT_FOUND));
     }
 }
