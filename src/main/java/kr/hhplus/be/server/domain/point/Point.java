@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.point;
 
 import jakarta.persistence.*;
-import kr.hhplus.be.server.common.BaseTimeEntity;
+import kr.hhplus.be.server.common.config.BaseTimeEntity;
 import kr.hhplus.be.server.common.exception.ExceedsMaximumPointException;
 import kr.hhplus.be.server.common.exception.NegativeChargePointException;
 import kr.hhplus.be.server.common.exception.NegativeUsePointException;
