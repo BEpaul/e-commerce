@@ -25,6 +25,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
 
+        log.error("Validation errors: {}", errors);
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .code(ErrorCode.INVALID_INPUT_VALUE.name())
                 .message("입력값이 유효하지 않습니다.")
@@ -35,6 +37,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({ApiException.class})
     public ResponseEntity<ErrorResponse> handleCustomException(ApiException e) {
+        log.error("API Exception occurred: {}", e.getMessage());
+
         ErrorCode errorCode = e.getErrorCode();
         return handleInternalException(errorCode);
     }
@@ -45,6 +49,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponse> handleInternalException(ErrorCode errorCode) {
+        log.error("Internal server error: {}", errorCode.getMessage());
+
         return ResponseEntity.status(errorCode.getStatus())
                 .body(makeErrorResponse(errorCode));
     }
