@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -22,6 +24,7 @@ import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class BestSellerServiceTest {
+    private static final Logger log = LoggerFactory.getLogger(BestSellerServiceTest.class);
     @InjectMocks
     private BestSellerService bestSellerService;
 
@@ -33,40 +36,35 @@ class BestSellerServiceTest {
             BestSeller.builder()
                 .id(1L)
                 .name("상품1")
-                .price(10000L)
-                .stock(100L)
+                .productId(1L)
                 .ranking(1L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
                 .id(2L)
                 .name("상품2")
-                .price(20000L)
-                .stock(200L)
+                .productId(2L)
                 .ranking(2L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
                 .id(3L)
                 .name("상품3")
-                .price(30000L)
-                .stock(300L)
+                .productId((3L))
                 .ranking(3L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
                 .id(4L)
                 .name("상품4")
-                .price(40000L)
-                .stock(400L)
+                .productId(4L)
                 .ranking(4L)
                 .topDate(topDate)
                 .build(),
             BestSeller.builder()
                 .id(5L)
                 .name("상품5")
-                .price(50000L)
-                .stock(500L)
+                .productId(5L)
                 .ranking(5L)
                 .topDate(topDate)
                 .build()
