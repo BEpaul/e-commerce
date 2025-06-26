@@ -17,15 +17,21 @@ import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 public class BestSellerService {
 
     private final BestSellerRepository bestSellerRepository;
+    private final BestSellerCacheService bestSellerCacheService;
 
     @Transactional(readOnly = true)
     public List<BestSeller> getTopProducts(LocalDateTime date) {
+        List<BestSeller> cached = (List<BestSeller>) bestSellerCacheService.getCachedBestSellers(date.toLocalDate());
+        if (cached != null) {
+            return cached;
+        }
+
         List<BestSeller> bestSellers = bestSellerRepository.findByTopDateOrderByRankingAsc(date);
-        
         if (bestSellers.isEmpty()) {
             throw new ApiException(BESTSELLER_NOT_FOUND);
         }
-        
+
+        bestSellerCacheService.cacheBestSellers(date.toLocalDate(), bestSellers);
         return bestSellers;
     }
 }
