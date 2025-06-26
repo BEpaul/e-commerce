@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.bestseller;
 
+import kr.hhplus.be.server.domain.bestseller.BestSeller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,12 +19,13 @@ public class BestSellerCacheService {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String CACHE_KEY_PREFIX = "bestseller:";
 
-    public List<?> getCachedBestSellers(LocalDate date) {
+    @SuppressWarnings("unchecked")
+    public List<BestSeller> getCachedBestSellers(LocalDate date) {
         log.warn("Retrieving cached best sellers for date: {}", CACHE_KEY_PREFIX + date);
-        return (List<?>) redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + date);
+        return (List<BestSeller>) redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + date);
     }
 
-    public void cacheBestSellers(LocalDate date, List<?> bestSellers) {
+    public void cacheBestSellers(LocalDate date, List<BestSeller> bestSellers) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
         long secondsUntilMidnight = Duration.between(now, midnight).getSeconds();

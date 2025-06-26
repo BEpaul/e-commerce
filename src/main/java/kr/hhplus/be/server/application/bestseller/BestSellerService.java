@@ -21,7 +21,7 @@ public class BestSellerService {
 
     @Transactional(readOnly = true)
     public List<BestSeller> getTopProducts(LocalDateTime date) {
-        List<BestSeller> cached = (List<BestSeller>) bestSellerCacheService.getCachedBestSellers(date.toLocalDate());
+        List<BestSeller> cached = bestSellerCacheService.getCachedBestSellers(date.toLocalDate());
         if (cached != null) {
             return cached;
         }
