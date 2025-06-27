@@ -60,32 +60,19 @@ public class PaymentService {
 
     @Async("taskExecutor")
     protected void handleExternalPayment(Long paymentId) {
-        try {
-            // 결제 정보를 다시 조회
             Payment payment = paymentRepository.findById(paymentId)
                     .orElseThrow(() -> new ApiException(PAYMENT_INFO_NOT_EXIST));
             
             boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
+
+            if (!isPaymentSuccess) {
+                throw new ApiException(PAYMENT_PROCESSING_FAILED);
+            }
+
             updatePaymentStatus(payment, isPaymentSuccess);
             savePayment(payment);
             
-            log.info("Payment processing completed for paymentId: {}, success: {}", 
-                    paymentId, isPaymentSuccess);
-        } catch (Exception e) {
-            log.error("Payment processing failed for paymentId: {}", paymentId, e);
-            
-            // 결제 실패 시 상태를 CANCEL로 변경
-            try {
-                Payment payment = paymentRepository.findById(paymentId).orElse(null);
-                if (payment != null) {
-                    payment.cancel();
-                    savePayment(payment);
-                }
-            } catch (Exception saveException) {
-                log.error("Failed to update payment status to CANCEL for paymentId: {}", 
-                        paymentId, saveException);
-            }
-        }
+           log.info("Payment processing completed for paymentId: {}, success: {}", paymentId, isPaymentSuccess);
     }
 
     private boolean sendPaymentToDataPlatform(Payment payment) {
