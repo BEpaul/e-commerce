@@ -36,10 +36,9 @@ public enum ErrorCode {
     EXPIRED_COUPON("EXPIRED_COUPON", HttpStatus.UNPROCESSABLE_ENTITY, "쿠폰이 만료되었습니다."),
     
     // 500 Internal Server Error - 서버 내부 오류
-    PAYMENT_PROCESS_ERROR("PAYMENT_PROCESS_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 오류가 발생했습니다."),
-    PAYMENT_FAILED("PAYMENT_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "결제에 실패했습니다."),
     PAYMENT_PROCESSING_FAILED("PAYMENT_PROCESSING_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "결제 처리 중 예기치 못한 오류가 발생했습니다."),
-    
+    PAYMENT_FAILED("PAYMENT_FAILED", HttpStatus.INTERNAL_SERVER_ERROR, "결제에 실패했습니다."),
+
     // 기타 예상치 못한 오류
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
     UNEXPECTED_ERROR("UNEXPECTED_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 발생했습니다.");

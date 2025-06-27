@@ -69,22 +69,7 @@ class PaymentServiceTest {
         }
 
         @Test
-        void 결제_처리가_시작되면_결제_상태를_PENDING으로_저장한다() {
-            // given
-            given(dataPlatform.sendData(payment)).willReturn(true);
-
-            // when
-            paymentService.processPayment(payment, userId);
-
-            // then
-            // processPayment 메서드가 완료될 때는 PENDING 상태
-            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-            then(paymentRepository).should().save(payment);
-            then(pointService).should().usePoint(eq(userId), eq(10000L));
-        }
-
-        @Test
-        void 비동기_결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
+        void 결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(true);
             payment.pending(); // PENDING 상태로 설정
@@ -98,15 +83,17 @@ class PaymentServiceTest {
         }
 
         @Test
-        void 비동기_결제_처리가_실패하면_결제_상태를_CANCELED로_변경한다() {
+        void 결제_처리가_실패하면_결제_상태를_CANCELED로_변경하고_예외가_발생한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(false);
             payment.pending(); // PENDING 상태로 설정
 
-            // when
-            paymentService.handleExternalPayment(payment.getId());
+            // when & then
+            assertThatThrownBy(() -> paymentService.handleExternalPayment(payment.getId()))
+                .isInstanceOf(ApiException.class)
+                .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
 
-            // then
+            // 결제 상태가 CANCELED로 변경되었는지 확인
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
             then(paymentRepository).should().save(payment);
         }

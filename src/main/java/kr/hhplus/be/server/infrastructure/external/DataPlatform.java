@@ -5,10 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class DataPlatform {
 
-    private final OutBoxEventRepository outBoxEventRepository;
+//    private final OutBoxEventRepository outBoxEventRepository;
 
     public boolean sendData(Payment payment) {
         // 실제 외부 API 호출
