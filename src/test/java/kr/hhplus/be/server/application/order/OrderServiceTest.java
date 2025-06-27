@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.application.payment.PaymentService;
-import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.order.Order;
@@ -26,6 +25,7 @@ import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doNothing;
@@ -49,9 +49,6 @@ class OrderServiceTest {
 
     @Mock
     private ProductService productService;
-
-    @Mock
-    private PointService pointService;
 
     @Mock
     private PaymentService paymentService;
@@ -97,7 +94,7 @@ class OrderServiceTest {
         @Test
         void 주문이_성공적으로_생성된다() {
             // given
-            doNothing().when(paymentService).processPayment(any());
+            doNothing().when(paymentService).processPayment(any(), eq(1L));
 
             // when
             Order result = orderService.createOrder(order, orderProducts);
@@ -107,7 +104,7 @@ class OrderServiceTest {
             assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             then(orderRepository).should().save(order);
             then(orderProductRepository).should().save(any(OrderProduct.class));
-            then(pointService).should().usePoint(order.getUserId(), 20000L);
+            then(paymentService).should().processPayment(any(), eq(1L));
         }
 
         @Test
@@ -118,7 +115,7 @@ class OrderServiceTest {
                 .userCouponId(1L)
                 .build();
             given(couponService.calculateDiscountPrice(1L, 20000L)).willReturn(15000L);
-            doNothing().when(paymentService).processPayment(any());
+            doNothing().when(paymentService).processPayment(any(), eq(1L));
 
             // when
             Order result = orderService.createOrder(order, orderProducts);
@@ -127,14 +124,14 @@ class OrderServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             then(couponService).should().useCoupon(1L);
-            then(pointService).should().usePoint(order.getUserId(), 15000L);
+            then(paymentService).should().processPayment(any(), eq(1L));
         }
 
         @Test
         void 결제가_실패하면_예외가_발생한다() {
             // given
             doThrow(new ApiException(PAYMENT_FAILED))
-                .when(paymentService).processPayment(any());
+                .when(paymentService).processPayment(any(), eq(1L));
 
             // when & then
             assertThatThrownBy(() -> orderService.createOrder(order, orderProducts))

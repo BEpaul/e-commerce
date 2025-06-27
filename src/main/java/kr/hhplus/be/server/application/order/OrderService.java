@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.application.payment.PaymentService;
-import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.order.Order;
@@ -28,11 +27,19 @@ public class OrderService {
     private final OrderProductRepository orderProductRepository;
     private final CouponService couponService;
     private final ProductService productService;
-    private final PointService pointService;
     private final PaymentService paymentService;
 
     /**
      * 주문 생성
+     * 1. 주문 상품 유효성 검사
+     * 2. 상품 재고 감소
+     * 3. 총 가격 계산
+     * 4. 쿠폰 할인 적용
+     * 5. 쿠폰 사용 처리
+     * 6. 주문 정보 저장
+     * 7. 결제 처리
+     * 8. 주문 상품 정보 저장
+     * 9. 주문 상태 업데이트
      */
     @Transactional
     public Order createOrder(Order order, List<OrderProduct> orderProducts) {
@@ -56,6 +63,13 @@ public class OrderService {
         }
     }
 
+    private void decreaseProductStocks(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+            Product product = productService.getProductWithPessimisticLock(orderProduct.getProductId());
+            product.decreaseStock(orderProduct.getQuantity());
+        }
+    }
+
     private long calculateTotalPrice(List<OrderProduct> orderProducts) {
         return orderProducts.stream()
                 .mapToLong(it -> {
@@ -63,13 +77,6 @@ public class OrderService {
                     return product.getPrice() * it.getQuantity();
                 })
                 .sum();
-    }
-
-    private void decreaseProductStocks(List<OrderProduct> orderProducts) {
-        for (OrderProduct orderProduct : orderProducts) {
-            Product product = productService.getProductWithPessimisticLock(orderProduct.getProductId());
-            product.decreaseStock(orderProduct.getQuantity());
-        }
     }
 
     private long calculateDiscountedPrice(Order order, long totalPrice) {
@@ -89,14 +96,14 @@ public class OrderService {
 
     private Order saveOrder(Order order, long totalPrice) {
         order.calculateTotalAmount(totalPrice);
-        pointService.usePoint(order.getUserId(), totalPrice);
         return orderRepository.save(order);
     }
 
     private void processPayment(Order order, long totalPrice) {
         try {
             paymentService.processPayment(
-                Payment.create(order.getId(), PaymentMethod.POINT, totalPrice)
+                Payment.create(order.getId(), PaymentMethod.POINT, totalPrice),
+                order.getUserId()
             );
             order.success();
         } catch (Exception e) {
