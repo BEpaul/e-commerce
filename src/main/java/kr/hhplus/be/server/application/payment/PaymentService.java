@@ -7,12 +7,14 @@ import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -25,8 +27,8 @@ public class PaymentService {
      * 결제 처리
      * 1. 중복 결제 체크
      * 2. 포인트 차감
-     * 3. 결제 정보 저장
-     * 4. 비동기로 결제 처리 시작
+     * 3. 결제 정보 저장 (PENDING 상태)
+     * 4. 비동기로 외부 플랫폼 결제 처리 시작
      */
     @Transactional
     public void processPayment(Payment payment, Long userId) {
@@ -36,7 +38,12 @@ public class PaymentService {
 
         checkDuplicatePayment(payment);
         deductPoint(payment, userId);
-        processPaymentAsync(payment);
+        
+        // 결제 정보를 저장 (이미 PENDING 상태)
+        savePayment(payment);
+        
+        // 비동기로 외부 플랫폼 결제 처리 시작
+        handleExternalPayment(payment.getId());
     }
 
     private void checkDuplicatePayment(Payment payment) {
@@ -51,17 +58,33 @@ public class PaymentService {
         }
     }
 
-    @Async
-    @Transactional
-    protected void processPaymentAsync(Payment payment) {
+    @Async("taskExecutor")
+    protected void handleExternalPayment(Long paymentId) {
         try {
+            // 결제 정보를 다시 조회
+            Payment payment = paymentRepository.findById(paymentId)
+                    .orElseThrow(() -> new ApiException(PAYMENT_INFO_NOT_EXIST));
+            
             boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
             updatePaymentStatus(payment, isPaymentSuccess);
             savePayment(payment);
+            
+            log.info("Payment processing completed for paymentId: {}, success: {}", 
+                    paymentId, isPaymentSuccess);
         } catch (Exception e) {
-            payment.cancel();
-            savePayment(payment);
-            throw new ApiException(PAYMENT_PROCESS_ERROR);
+            log.error("Payment processing failed for paymentId: {}", paymentId, e);
+            
+            // 결제 실패 시 상태를 CANCEL로 변경
+            try {
+                Payment payment = paymentRepository.findById(paymentId).orElse(null);
+                if (payment != null) {
+                    payment.cancel();
+                    savePayment(payment);
+                }
+            } catch (Exception saveException) {
+                log.error("Failed to update payment status to CANCEL for paymentId: {}", 
+                        paymentId, saveException);
+            }
         }
     }
 
