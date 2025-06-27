@@ -1,7 +1,9 @@
 package kr.hhplus.be.server.application.payment;
 
+import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.common.exception.*;
 import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
 import lombok.RequiredArgsConstructor;
@@ -17,26 +19,35 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final DataPlatform dataPlatform;
+    private final PointService pointService;
 
     /**
      * 결제 처리
      * 1. 중복 결제 체크
-     * 2. 결제 정보 저장
-     * 3. 비동기로 결제 처리 시작
+     * 2. 포인트 차감
+     * 3. 결제 정보 저장
+     * 4. 비동기로 결제 처리 시작
      */
     @Transactional
-    public void processPayment(Payment payment) {
+    public void processPayment(Payment payment, Long userId) {
         if (payment == null) {
             throw new ApiException(PAYMENT_INFO_NOT_EXIST);
         }
 
         checkDuplicatePayment(payment);
+        deductPoint(payment, userId);
         processPaymentAsync(payment);
     }
 
     private void checkDuplicatePayment(Payment payment) {
         if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
             throw new ApiException(DUPLICATE_PAYMENT);
+        }
+    }
+
+    private void deductPoint(Payment payment, Long userId) {
+        if (payment.getPaymentMethod() == PaymentMethod.POINT) {
+            pointService.usePoint(userId, payment.getAmount());
         }
     }
 

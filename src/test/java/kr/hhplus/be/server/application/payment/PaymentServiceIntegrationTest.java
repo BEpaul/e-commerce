@@ -5,7 +5,9 @@ import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
+import kr.hhplus.be.server.domain.point.Point;
 import kr.hhplus.be.server.infrastructure.external.DataPlatform;
+import kr.hhplus.be.server.infrastructure.persistence.point.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,16 +34,27 @@ class PaymentServiceIntegrationTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private PointRepository pointRepository;
+
     @MockitoBean
     private DataPlatform dataPlatform;
 
     private Long orderId;
     private Long amount;
+    private Long userId;
 
     @BeforeEach
     void setUp() {
         orderId = 1L;
         amount = 10000L;
+        userId = 1L;
+        // 포인트 생성
+        Point point = Point.builder()
+            .userId(userId)
+            .volume(50000L)
+            .build();
+        pointRepository.save(point);
     }
 
     @Nested
@@ -54,10 +67,13 @@ class PaymentServiceIntegrationTest {
             given(dataPlatform.sendData(any())).willReturn(true);
 
             // when
-            paymentService.processPayment(payment);
+            paymentService.processPayment(payment, userId);
 
             // then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
+            // 포인트 차감 검증
+            Point updated = pointRepository.findByUserId(userId).orElseThrow();
+            assertThat(updated.getVolume()).isEqualTo(40000L);
         }
 
         @Test
@@ -66,7 +82,7 @@ class PaymentServiceIntegrationTest {
             Payment payment = null;
 
             // when & then
-            assertThatThrownBy(() -> paymentService.processPayment(payment))
+            assertThatThrownBy(() -> paymentService.processPayment(payment, userId))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(PAYMENT_INFO_NOT_EXIST.getMessage());
         }
@@ -78,10 +94,13 @@ class PaymentServiceIntegrationTest {
             given(dataPlatform.sendData(any())).willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> paymentService.processPayment(payment))
+            assertThatThrownBy(() -> paymentService.processPayment(payment, userId))
                     .isInstanceOf(ApiException.class)
-                    .hasMessage(PAYMENT_FAILED.getMessage());
+                    .hasMessage(PAYMENT_PROCESS_ERROR.getMessage());
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+            // 포인트가 차감되지 않았는지 검증
+            Point updated = pointRepository.findByUserId(userId).orElseThrow();
+            assertThat(updated.getVolume()).isEqualTo(50000L);
         }
 
         @Test
@@ -91,10 +110,10 @@ class PaymentServiceIntegrationTest {
             given(dataPlatform.sendData(any())).willReturn(true);
 
             // when
-            paymentService.processPayment(payment);
+            paymentService.processPayment(payment, userId);
 
             // then
-            assertThatThrownBy(() -> paymentService.processPayment(payment))
+            assertThatThrownBy(() -> paymentService.processPayment(payment, userId))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(DUPLICATE_PAYMENT.getMessage());
         }
