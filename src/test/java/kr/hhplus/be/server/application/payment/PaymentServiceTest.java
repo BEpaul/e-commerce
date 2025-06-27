@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,6 +58,7 @@ class PaymentServiceTest {
                 .volume(50000L)
                 .build();
             lenient().when(pointService.usePoint(any(), any())).thenReturn(point);
+            lenient().when(paymentRepository.findById(any())).thenReturn(Optional.of(payment));
         }
 
         @Test
@@ -66,7 +69,7 @@ class PaymentServiceTest {
         }
 
         @Test
-        void 결제가_성공하면_결제_상태를_APPROVED로_변경한다() {
+        void 결제_처리가_시작되면_결제_상태를_PENDING으로_저장한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(true);
 
@@ -74,23 +77,38 @@ class PaymentServiceTest {
             paymentService.processPayment(payment, userId);
 
             // then
-            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
+            // processPayment 메서드가 완료될 때는 PENDING 상태
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
             then(paymentRepository).should().save(payment);
             then(pointService).should().usePoint(eq(userId), eq(10000L));
         }
 
         @Test
-        void 결제가_실패하면_결제_상태를_CANCELED로_변경하고_예외가_발생한다() {
+        void 비동기_결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
+            // given
+            given(dataPlatform.sendData(payment)).willReturn(true);
+            payment.pending(); // PENDING 상태로 설정
+
+            // when
+            paymentService.handleExternalPayment(payment.getId());
+
+            // then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
+            then(paymentRepository).should().save(payment);
+        }
+
+        @Test
+        void 비동기_결제_처리가_실패하면_결제_상태를_CANCELED로_변경한다() {
             // given
             given(dataPlatform.sendData(payment)).willReturn(false);
+            payment.pending(); // PENDING 상태로 설정
 
-            // when & then
-            assertThatThrownBy(() -> paymentService.processPayment(payment, userId))
-                .isInstanceOf(ApiException.class)
-                .hasMessage(PAYMENT_PROCESS_ERROR.getMessage());
+            // when
+            paymentService.handleExternalPayment(payment.getId());
+
+            // then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
             then(paymentRepository).should().save(payment);
-            then(pointService).should().usePoint(eq(userId), eq(10000L));
         }
     }
 }
