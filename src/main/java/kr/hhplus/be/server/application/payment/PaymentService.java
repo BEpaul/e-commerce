@@ -28,7 +28,7 @@ public class PaymentService {
      * 1. 중복 결제 체크
      * 2. 포인트 차감
      * 3. 결제 정보 저장 (PENDING 상태)
-     * 4. 비동기로 외부 플랫폼 결제 처리 시작
+     * 4. 외부 플랫폼 결제 처리 시작
      */
     @Transactional
     public void processPayment(Payment payment, Long userId) {
@@ -38,11 +38,11 @@ public class PaymentService {
 
         checkDuplicatePayment(payment);
         deductPoint(payment, userId);
-        
+
         // 결제 정보를 저장 (이미 PENDING 상태)
         savePayment(payment);
-        
-        // 비동기로 외부 플랫폼 결제 처리 시작
+
+        // 외부 플랫폼 결제 처리 시작
         handleExternalPayment(payment.getId());
     }
 
@@ -58,33 +58,28 @@ public class PaymentService {
         }
     }
 
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
     protected void handleExternalPayment(Long paymentId) {
-            Payment payment = paymentRepository.findById(paymentId)
-                    .orElseThrow(() -> new ApiException(PAYMENT_INFO_NOT_EXIST));
-            
-            boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ApiException(PAYMENT_INFO_NOT_EXIST));
 
-            if (!isPaymentSuccess) {
-                throw new ApiException(PAYMENT_PROCESSING_FAILED);
-            }
+        boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
 
-            updatePaymentStatus(payment, isPaymentSuccess);
+        if (!isPaymentSuccess) {
+            payment.cancel();
             savePayment(payment);
-            
-           log.info("Payment processing completed for paymentId: {}, success: {}", paymentId, isPaymentSuccess);
+            log.error("Payment processing failed for paymentId: {}", paymentId);
+            throw new ApiException(PAYMENT_PROCESSING_FAILED);
+        }
+
+        payment.approve();
+        savePayment(payment);
+
+        log.info("Payment processing completed for paymentId: {}, success: {}", paymentId, isPaymentSuccess);
     }
 
     private boolean sendPaymentToDataPlatform(Payment payment) {
         return dataPlatform.sendData(payment);
-    }
-
-    private void updatePaymentStatus(Payment payment, boolean isSuccess) {
-        if (isSuccess) {
-            payment.approve();
-            return;
-        }
-        payment.cancel();
     }
 
     private void savePayment(Payment payment) {

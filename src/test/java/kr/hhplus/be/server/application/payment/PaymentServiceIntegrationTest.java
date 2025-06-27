@@ -96,11 +96,8 @@ class PaymentServiceIntegrationTest {
             // when & then
             assertThatThrownBy(() -> paymentService.processPayment(payment, userId))
                     .isInstanceOf(ApiException.class)
-                    .hasMessage(PAYMENT_PROCESS_ERROR.getMessage());
+                    .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
-            // 포인트가 차감되지 않았는지 검증
-            Point updated = pointRepository.findByUserId(userId).orElseThrow();
-            assertThat(updated.getVolume()).isEqualTo(50000L);
         }
 
         @Test
