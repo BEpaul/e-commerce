@@ -5,9 +5,11 @@ import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
+import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
 import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponListResponse;
 import kr.hhplus.be.server.interfaces.web.coupon.dto.response.CouponResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -19,18 +21,32 @@ import java.util.stream.Collectors;
 
 import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+    private final DistributedLockService distributedLockService;
 
+    /**
+     * 쿠폰 사용
+     */
     @Transactional
     public void useCoupon(Long userCouponId) {
         UserCoupon userCoupon = findUserCouponById(userCouponId);
-        userCoupon.use();
-        userCouponRepository.save(userCoupon);
+        
+        // 사용자별 분산락 적용
+        distributedLockService.executePointLock(userCoupon.getUserId(), () -> {
+            log.info("쿠폰 사용 시작 - 사용자 쿠폰 ID: {}, 사용자 ID: {}", userCouponId, userCoupon.getUserId());
+            
+            userCoupon.use();
+            userCouponRepository.save(userCoupon);
+            
+            log.info("쿠폰 사용 완료 - 사용자 쿠폰 ID: {}", userCouponId);
+            return null;
+        });
     }
 
     @Transactional
@@ -52,17 +68,26 @@ public class CouponService {
             backoff = @Backoff(delay = 10)
     )
     public UserCoupon issueCoupon(Long userId, Long couponId) {
-        Coupon coupon = findCouponById(couponId);
+        // 쿠폰별 분산락 적용
+        return distributedLockService.executeWithLock("coupon:issue:" + couponId, 10, 30, () -> {
+            log.info("쿠폰 발급 시작 - 사용자 ID: {}, 쿠폰 ID: {}", userId, couponId);
+            
+            Coupon coupon = findCouponById(couponId);
 
-        if (coupon.getStock() <= 0) {
-            throw new ApiException(OUT_OF_STOCK_COUPON);
-        }
+            if (coupon.getStock() <= 0) {
+                log.warn("쿠폰 재고 부족 - 쿠폰 ID: {}", couponId);
+                throw new ApiException(OUT_OF_STOCK_COUPON);
+            }
 
-        coupon.decreaseStock();
-        couponRepository.save(coupon);
-        
-        UserCoupon userCoupon = UserCoupon.of(userId, couponId);
-        return userCouponRepository.save(userCoupon);
+            coupon.decreaseStock();
+            couponRepository.save(coupon);
+            
+            UserCoupon userCoupon = UserCoupon.of(userId, couponId);
+            UserCoupon savedUserCoupon = userCouponRepository.save(userCoupon);
+            
+            log.info("쿠폰 발급 완료 - 사용자 ID: {}, 쿠폰 ID: {}, 남은 재고: {}", userId, couponId, coupon.getStock());
+            return savedUserCoupon;
+        });
     }
 
     /**
