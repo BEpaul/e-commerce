@@ -10,6 +10,7 @@ import kr.hhplus.be.server.domain.order.OrderProductRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,9 @@ class OrderServiceTest {
     @Mock
     private PaymentService paymentService;
 
+    @Mock
+    private DistributedLockService distributedLockService;
+
     @Nested
     class Describe_createOrder {
 
@@ -79,9 +83,22 @@ class OrderServiceTest {
                 .stock(10L)
                 .description("상품 설명")
                 .build();
+            
+            // 기본 모킹 설정
             lenient().when(productService.getProduct(1L)).thenReturn(product);
             lenient().when(productService.getProductWithPessimisticLock(1L)).thenReturn(product);
             lenient().when(orderRepository.save(any(Order.class))).thenReturn(order);
+            
+            // 분산락 모킹 설정 - 락을 성공적으로 획득하고 작업을 실행하도록 설정
+            lenient().when(distributedLockService.executeOrderLock(eq(1L), any())).thenAnswer(invocation -> {
+                return invocation.getArgument(1, java.util.function.Supplier.class).get();
+            });
+            lenient().when(distributedLockService.executeProductStockLock(eq(1L), any())).thenAnswer(invocation -> {
+                return invocation.getArgument(1, java.util.function.Supplier.class).get();
+            });
+            lenient().when(distributedLockService.executePaymentLock(any(), any())).thenAnswer(invocation -> {
+                return invocation.getArgument(1, java.util.function.Supplier.class).get();
+            });
         }
 
         @Test
@@ -105,6 +122,8 @@ class OrderServiceTest {
             then(orderRepository).should().save(order);
             then(orderProductRepository).should().save(any(OrderProduct.class));
             then(paymentService).should().processPayment(any(), eq(1L));
+            then(distributedLockService).should().executeOrderLock(eq(1L), any());
+            then(distributedLockService).should().executeProductStockLock(eq(1L), any());
         }
 
         @Test
@@ -125,6 +144,8 @@ class OrderServiceTest {
             assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED);
             then(couponService).should().useCoupon(1L);
             then(paymentService).should().processPayment(any(), eq(1L));
+            then(distributedLockService).should().executeOrderLock(eq(1L), any());
+            then(distributedLockService).should().executeProductStockLock(eq(1L), any());
         }
 
         @Test
