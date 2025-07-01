@@ -103,7 +103,7 @@ class OrderConcurrencyTest {
                             .quantity((long) quantityPerOrder)
                             .build();
 
-                    Order savedOrder = orderService.createOrder(order, List.of(orderProduct));
+                    Order savedOrder = orderService.placeOrder(order, List.of(orderProduct));
                     successCount.incrementAndGet();
                     return savedOrder;
                 } catch (Exception e) {
@@ -161,7 +161,7 @@ class OrderConcurrencyTest {
                             .quantity((long) quantityPerOrder)
                             .build();
 
-                    Order savedOrder = orderService.createOrder(order, List.of(orderProduct));
+                    Order savedOrder = orderService.placeOrder(order, List.of(orderProduct));
                     successCount.incrementAndGet();
                     return savedOrder;
                 } catch (Exception e) {
@@ -219,7 +219,7 @@ class OrderConcurrencyTest {
                             .quantity((long) quantityPerOrder)
                             .build();
 
-                    Order savedOrder = orderService.createOrder(order, List.of(orderProduct));
+                    Order savedOrder = orderService.placeOrder(order, List.of(orderProduct));
                     successCount.incrementAndGet();
                     return savedOrder;
                 } catch (Exception e) {

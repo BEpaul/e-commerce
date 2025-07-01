@@ -47,7 +47,7 @@ public class OrderService {
      * 10. 주문 상태 업데이트
      */
     @Transactional
-    public Order createOrder(Order order, List<OrderProduct> orderProducts) {
+    public Order placeOrder(Order order, List<OrderProduct> orderProducts) {
         return distributedLockService.executeOrderLock(order.getUserId(), () -> {
             log.info("주문 생성 시작 - 사용자 ID: {}", order.getUserId());
             
@@ -58,7 +58,7 @@ public class OrderService {
             processCouponUsage(order);
 
             Order savedOrder = saveOrder(order, totalPrice);
-            processPayment(savedOrder, totalPrice);
+            initiatePayment(savedOrder, totalPrice);
             saveOrderProducts(savedOrder, orderProducts);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
@@ -118,7 +118,7 @@ public class OrderService {
     /**
      * 결제 처리
      */
-    private void processPayment(Order order, long totalPrice) {
+    private void initiatePayment(Order order, long totalPrice) {
         try {
             Payment payment = Payment.create(order.getId(), PaymentMethod.POINT, totalPrice);
             
