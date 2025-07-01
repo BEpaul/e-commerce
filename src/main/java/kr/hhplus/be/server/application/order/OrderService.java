@@ -122,11 +122,7 @@ public class OrderService {
         try {
             Payment payment = Payment.create(order.getId(), PaymentMethod.POINT, totalPrice);
             
-            // 결제별 분산락 적용
-            distributedLockService.executePaymentLock(payment.getId(), () -> {
-                paymentService.processPayment(payment, order.getUserId());
-                return null;
-            });
+            paymentService.processPayment(payment, order.getUserId());
             
             order.success();
             log.info("결제 처리 완료 - 주문 ID: {}, 결제 ID: {}", order.getId(), payment.getId());
