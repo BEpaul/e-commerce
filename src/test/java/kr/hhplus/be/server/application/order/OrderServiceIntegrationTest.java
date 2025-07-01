@@ -120,7 +120,7 @@ class OrderServiceIntegrationTest {
                     .build();
 
             // when
-            Order savedOrder = orderService.createOrder(order, List.of(orderProduct));
+            Order savedOrder = orderService.placeOrder(order, List.of(orderProduct));
 
             // then
             assertThat(savedOrder.getId()).isNotNull();
@@ -137,7 +137,7 @@ class OrderServiceIntegrationTest {
                     .build();
 
             // when & then
-            assertThatThrownBy(() -> orderService.createOrder(order, List.of()))
+            assertThatThrownBy(() -> orderService.placeOrder(order, List.of()))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(ORDER_PRODUCT_EMPTY.getMessage());
         }
@@ -157,7 +157,7 @@ class OrderServiceIntegrationTest {
             given(dataPlatform.sendData(any())).willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> orderService.createOrder(order, List.of(orderProduct)))
+            assertThatThrownBy(() -> orderService.placeOrder(order, List.of(orderProduct)))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(PAYMENT_FAILED.getMessage());
             assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);

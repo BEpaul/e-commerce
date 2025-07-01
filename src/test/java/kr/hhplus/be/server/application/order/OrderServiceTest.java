@@ -103,7 +103,7 @@ class OrderServiceTest {
 
         @Test
         void 주문_상품이_없으면_예외가_발생한다() {
-            assertThatThrownBy(() -> orderService.createOrder(order, new ArrayList<>()))
+            assertThatThrownBy(() -> orderService.placeOrder(order, new ArrayList<>()))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(ORDER_PRODUCT_EMPTY.getMessage());
         }
@@ -114,7 +114,7 @@ class OrderServiceTest {
             doNothing().when(paymentService).processPayment(any(), eq(1L));
 
             // when
-            Order result = orderService.createOrder(order, orderProducts);
+            Order result = orderService.placeOrder(order, orderProducts);
 
             // then
             assertThat(result).isNotNull();
@@ -137,7 +137,7 @@ class OrderServiceTest {
             doNothing().when(paymentService).processPayment(any(), eq(1L));
 
             // when
-            Order result = orderService.createOrder(order, orderProducts);
+            Order result = orderService.placeOrder(order, orderProducts);
 
             // then
             assertThat(result).isNotNull();
@@ -155,7 +155,7 @@ class OrderServiceTest {
                 .when(paymentService).processPayment(any(), eq(1L));
 
             // when & then
-            assertThatThrownBy(() -> orderService.createOrder(order, orderProducts))
+            assertThatThrownBy(() -> orderService.placeOrder(order, orderProducts))
                     .isInstanceOf(ApiException.class)
                     .hasMessage(PAYMENT_FAILED.getMessage());
         }
