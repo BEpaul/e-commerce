@@ -81,6 +81,7 @@ class OrderServiceTest {
                 .name("상품명")
                 .price(10000L)
                 .stock(10L)
+                .salesCount(0L)
                 .description("상품 설명")
                 .build();
             
