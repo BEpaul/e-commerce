@@ -36,6 +36,7 @@ class ProductServiceTest {
                 .name("상품 A")
                 .price(10000L)
                 .stock(50L)
+                .salesCount(0L)
                 .description("상품 A 설명")
                 .build();
         
@@ -72,12 +73,14 @@ class ProductServiceTest {
                         .name("상품 1")
                         .price(10000L)
                         .stock(50L)
+                        .salesCount(0L)
                         .description("상품 1 설명")
                         .build(),
                 Product.builder()
                         .name("상품 2")
                         .price(20000L)
                         .stock(30L)
+                        .salesCount(0L)
                         .description("상품 2 설명")
                         .build()
         );

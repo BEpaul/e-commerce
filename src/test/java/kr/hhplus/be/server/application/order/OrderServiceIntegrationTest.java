@@ -70,6 +70,7 @@ class OrderServiceIntegrationTest {
                 .name("테스트 상품")
                 .price(10000L)
                 .stock(10L)
+                .salesCount(0L)
                 .description("테스트 상품 설명")
                 .build();
         productId = productRepository.save(product).getId();

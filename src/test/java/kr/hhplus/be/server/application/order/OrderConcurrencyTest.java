@@ -65,6 +65,7 @@ class OrderConcurrencyTest {
                 .name("동시성 테스트 상품")
                 .price(10000L)
                 .stock(10L)
+                .salesCount(0L)
                 .description("동시성 테스트용 상품")
                 .build();
         productId = productRepository.save(product).getId();
