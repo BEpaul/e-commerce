@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.order;
 
+import kr.hhplus.be.server.application.bestseller.BestSellerRankingService;
 import kr.hhplus.be.server.application.coupon.CouponService;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.application.product.ProductService;
@@ -32,6 +33,7 @@ public class OrderService {
     private final ProductService productService;
     private final PaymentService paymentService;
     private final DistributedLockService distributedLockService;
+    private final BestSellerRankingService bestSellerRankingService;
 
     /**
      * 주문 생성
@@ -60,6 +62,9 @@ public class OrderService {
             Order savedOrder = saveOrder(order, totalPrice);
             initiatePayment(savedOrder, totalPrice);
             saveOrderProducts(savedOrder, orderProducts);
+            
+            // 베스트셀러 랭킹 업데이트
+            updateBestSellerRanking(orderProducts);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
             return savedOrder;
@@ -116,7 +121,7 @@ public class OrderService {
     }
 
     /**
-     * 결제 처리
+     * 결제 처리 시작
      */
     private void initiatePayment(Order order, long totalPrice) {
         try {
@@ -138,6 +143,23 @@ public class OrderService {
             Product product = productService.getProduct(orderProduct.getProductId());
             orderProduct.assignOrderInfo(order.getId(), product.getPrice());
             orderProductRepository.save(orderProduct);
+        }
+    }
+    
+    /**
+     * 베스트셀러 랭킹 업데이트
+     */
+    private void updateBestSellerRanking(List<OrderProduct> orderProducts) {
+        try {
+            for (OrderProduct orderProduct : orderProducts) {
+                bestSellerRankingService.incrementTodaySales(
+                    orderProduct.getProductId(), 
+                    orderProduct.getQuantity()
+                );
+            }
+            log.info("베스트셀러 랭킹 업데이트 완료 - 주문 상품 수: {}", orderProducts.size());
+        } catch (Exception e) {
+            log.error("베스트셀러 랭킹 업데이트 실패", e);
         }
     }
 }

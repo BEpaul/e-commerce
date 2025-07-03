@@ -26,7 +26,7 @@ public class BestSellerScheduler {
      * 1. 새로운 날짜 랭킹 초기화
      * 2. 전날 Redis 데이터를 RDB에 반영
      */
-    @Scheduled(cron = "0 21 15 * * ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul")
     @Transactional
     public void dailyRankingScheduler() {
         LocalDate today = LocalDate.now();
