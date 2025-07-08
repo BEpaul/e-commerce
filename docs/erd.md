@@ -59,6 +59,7 @@ erDiagram
         VARCHAR name
         BIGINT price
         BIGINT stock
+        BIGINT sales_count
         VARCHAR description
         DATETIME created_at
         DATETIME updated_at
@@ -213,6 +214,7 @@ CREATE TABLE `product` (
     `name` VARCHAR(50) NOT NULL,
     `price` BIGINT NOT NULL,
     `stock` BIGINT NOT NULL,
+    `sales_count` BIGINT NOT NULL DEFAULT 0,
     `description` VARCHAR(300) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
