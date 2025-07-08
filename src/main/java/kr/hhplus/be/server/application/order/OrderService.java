@@ -79,16 +79,20 @@ public class OrderService {
 
     /**
      * 재고 감소
+     * 상품 ID 순서로 정렬하여 데드락 방지
      */
     private void decreaseProductStocksWithLock(List<OrderProduct> orderProducts) {
-        for (OrderProduct orderProduct : orderProducts) {
-            distributedLockService.executeProductStockLock(orderProduct.getProductId(), () -> {
-                Product product = productService.getProductWithPessimisticLock(orderProduct.getProductId());
-                product.decreaseStock(orderProduct.getQuantity());
-                log.debug("상품 재고 감소 - 상품 ID: {}, 수량: {}", orderProduct.getProductId(), orderProduct.getQuantity());
-                return null;
-            });
-        }
+        // 상품 ID 순서로 정렬하여 데드락 방지
+        orderProducts.stream()
+                .sorted((op1, op2) -> Long.compare(op1.getProductId(), op2.getProductId()))
+                .forEach(orderProduct -> {
+                    distributedLockService.executeProductStockLock(orderProduct.getProductId(), () -> {
+                        Product product = productService.getProductWithPessimisticLock(orderProduct.getProductId());
+                        product.decreaseStock(orderProduct.getQuantity());
+                        log.info("상품 재고 감소 - 상품 ID: {}, 수량: {}", orderProduct.getProductId(), orderProduct.getQuantity());
+                        return null;
+                    });
+                });
     }
 
     private long calculateTotalPrice(List<OrderProduct> orderProducts) {

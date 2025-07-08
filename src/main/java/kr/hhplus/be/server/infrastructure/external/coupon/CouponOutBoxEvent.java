@@ -40,7 +40,7 @@ public class CouponOutBoxEvent extends BaseTimeEntity {
     }
 
     public void markAsProcessed() {
-        this.status = CouponOutBoxEventStatus.COMPLETED;
+        this.status = CouponOutBoxEventStatus.PROCESSED;
     }
 
     public void markAsFailed() {
