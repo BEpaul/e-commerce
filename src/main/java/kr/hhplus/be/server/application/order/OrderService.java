@@ -129,7 +129,15 @@ public class OrderService {
      */
     private void initiatePayment(Order order, long totalPrice) {
         try {
-            paymentService.processPayment(order.getId(), order.getUserId(), totalPrice, PaymentMethod.POINT);
+            String idempotencyKey = generateIdempotencyKey(order.getId());
+            
+            paymentService.processPayment(
+                    order.getId(),
+                    order.getUserId(),
+                    totalPrice,
+                    PaymentMethod.POINT,
+                    idempotencyKey
+            );
 
             order.success();
             log.info("결제 처리 완료 - 주문 ID: {}", order.getId());
@@ -163,5 +171,12 @@ public class OrderService {
         } catch (Exception e) {
             log.error("베스트셀러 랭킹 업데이트 실패", e);
         }
+    }
+    
+    /**
+     * 멱등성 키 생성
+     */
+    private String generateIdempotencyKey(Long orderId) {
+        return String.format("ORDER_%d_%d", orderId, System.currentTimeMillis());
     }
 }
