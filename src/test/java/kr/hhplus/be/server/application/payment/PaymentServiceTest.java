@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.point.Point;
+import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
 import kr.hhplus.be.server.infrastructure.external.payment.DataPlatform;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -42,28 +43,58 @@ class PaymentServiceTest {
     @Mock
     private PointService pointService;
 
+    @Mock
+    private DistributedLockService distributedLockService;
+
+    private String generateIdempotencyKey(Long orderId) {
+        return String.format("ORDER_%d_%d", orderId, System.currentTimeMillis());
+    }
+
     @Nested
     class Describe_processPayment {
 
-        private Payment payment;
+        private Long orderId;
         private Long userId;
+        private Long amount;
+        private Payment payment;
         private Point point;
+        private String idempotencyKey;
 
         @BeforeEach
         void setUp() {
-            payment = Payment.create(1L, PaymentMethod.POINT, 10000L);
+            orderId = 1L;
             userId = 1L;
+            amount = 10000L;
+            idempotencyKey = generateIdempotencyKey(orderId);
+            payment = Payment.create(orderId, idempotencyKey, PaymentMethod.POINT, amount);
             point = Point.builder()
                 .userId(userId)
                 .volume(50000L)
                 .build();
-            lenient().when(pointService.usePoint(any(), any())).thenReturn(point);
+
+            // 분산락 모킹 설정 - 락을 성공적으로 획득하고 작업을 실행하도록 설정
+            lenient().when(distributedLockService.executePaymentLock(any(), any())).thenAnswer(invocation -> {
+                return invocation.getArgument(1, java.util.function.Supplier.class).get();
+            });
+            lenient().when(distributedLockService.executePointLock(any(), any())).thenAnswer(invocation -> {
+                return invocation.getArgument(1, java.util.function.Supplier.class).get();
+            });
+
+            // 기본 모킹 설정
+            lenient().when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
             lenient().when(paymentRepository.findById(any())).thenReturn(Optional.of(payment));
+            lenient().when(paymentRepository.existsByIdempotencyKey(any())).thenReturn(false);
+            lenient().when(pointService.usePoint(any(), any())).thenReturn(point);
         }
 
         @Test
-        void 결제_정보가_없으면_예외가_발생한다() {
-            assertThatThrownBy(() -> paymentService.processPayment(null, userId))
+        void 결제_정보_생성에_실패하면_예외가_발생한다() {
+            // given
+            Long invalidOrderId = null;
+            String invalidIdempotencyKey = generateIdempotencyKey(invalidOrderId);
+
+            // when & then
+            assertThatThrownBy(() -> paymentService.processPayment(invalidOrderId, userId, amount, PaymentMethod.POINT, invalidIdempotencyKey))
                 .isInstanceOf(ApiException.class)
                 .hasMessage(PAYMENT_INFO_NOT_EXIST.getMessage());
         }
@@ -71,31 +102,98 @@ class PaymentServiceTest {
         @Test
         void 결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
             // given
-            given(dataPlatform.sendData(payment)).willReturn(true);
-            payment.pending(); // PENDING 상태로 설정
+            given(dataPlatform.sendData(any())).willReturn(true);
 
             // when
-            paymentService.handleExternalPayment(payment.getId());
+            paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey);
+
+            // then
+            then(paymentRepository).should().save(any(Payment.class));
+            then(pointService).should().usePoint(eq(userId), eq(amount));
+            then(distributedLockService).should().executePaymentLock(eq(orderId), any());
+            then(distributedLockService).should().executePointLock(eq(userId), any());
+        }
+
+        @Test
+        void 외부_결제_플랫폼_응답이_실패하면_결제가_취소되고_예외가_발생한다() {
+            // given
+            given(dataPlatform.sendData(any())).willReturn(false);
+
+            // when & then
+            assertThatThrownBy(() -> paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey))
+                .isInstanceOf(ApiException.class)
+                .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
+
+            then(paymentRepository).should().save(any(Payment.class));
+            then(distributedLockService).should().executePaymentLock(eq(orderId), any());
+        }
+
+        @Test
+        void 중복_결제_요청이_들어오면_예외가_발생한다() {
+            // given
+            given(paymentRepository.existsByIdempotencyKey(any())).willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey))
+                .isInstanceOf(ApiException.class)
+                .hasMessage(DUPLICATE_PAYMENT.getMessage());
+
+            then(distributedLockService).should().executePaymentLock(eq(orderId), any());
+        }
+    }
+
+    @Nested
+    class Describe_handleExternalPayment {
+
+        private Long paymentId;
+        private Payment payment;
+        private String idempotencyKey;
+
+        @BeforeEach
+        void setUp() {
+            paymentId = 1L;
+            idempotencyKey = generateIdempotencyKey(1L);
+            payment = Payment.create(1L, idempotencyKey, PaymentMethod.POINT, 10000L);
+
+            lenient().when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        }
+
+        @Test
+        void 결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
+            // given
+            given(dataPlatform.sendData(any())).willReturn(true);
+
+            // when
+            paymentService.handleExternalPayment(paymentId);
 
             // then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
-            then(paymentRepository).should().save(payment);
         }
 
         @Test
         void 결제_처리가_실패하면_결제_상태를_CANCELED로_변경하고_예외가_발생한다() {
             // given
-            given(dataPlatform.sendData(payment)).willReturn(false);
-            payment.pending(); // PENDING 상태로 설정
+            given(dataPlatform.sendData(any())).willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> paymentService.handleExternalPayment(payment.getId()))
+            assertThatThrownBy(() -> paymentService.handleExternalPayment(paymentId))
                 .isInstanceOf(ApiException.class)
                 .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
 
             // 결제 상태가 CANCELED로 변경되었는지 확인
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
-            then(paymentRepository).should().save(payment);
+        }
+
+        @Test
+        void 결제_정보를_찾을_수_없으면_예외가_발생한다() {
+            // given
+            Long nonExistentPaymentId = 999L;
+            given(paymentRepository.findById(nonExistentPaymentId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> paymentService.handleExternalPayment(nonExistentPaymentId))
+                .isInstanceOf(ApiException.class)
+                .hasMessage(PAYMENT_INFO_NOT_EXIST.getMessage());
         }
     }
 }
