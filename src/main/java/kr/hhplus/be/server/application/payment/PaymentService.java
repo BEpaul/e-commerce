@@ -32,8 +32,8 @@ public class PaymentService {
      * 4. 포인트 차감 및 외부 플랫폼 결제 처리
      */
     @Transactional
-    public void processPayment(Long orderId, Long userId, Long totalAmount, PaymentMethod paymentMethod) {
-        Payment payment = Payment.create(orderId, paymentMethod, totalAmount);
+    public void processPayment(Long orderId, Long userId, Long totalAmount, PaymentMethod paymentMethod, String idempotencyKey) {
+        Payment payment = Payment.create(orderId, idempotencyKey, paymentMethod, totalAmount);
 
         if (payment == null) {
             throw new ApiException(PAYMENT_INFO_NOT_EXIST);
