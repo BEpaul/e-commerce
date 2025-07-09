@@ -26,39 +26,44 @@ public class PaymentService {
 
     /**
      * 결제 처리
-     * 1. 결제별 분산락 획득
-     * 2. 중복 결제 체크
-     * 3. 포인트 차감
+     * 1. 결제 정보 생성
+     * 2. 주문별 분산락 적용 (중복 결제 방지)
+     * 3. 중복 결제 체크
      * 4. 결제 정보 저장
-     * 5. 외부 플랫폼 결제 처리 시작
+     * 5. 결제별 분산락 적용 (결제 처리 동시성 제어)
+     * 6. 포인트 차감
+     * 7. 외부 플랫폼 결제 처리 시작
      */
     @Transactional
-    public void processPayment(Payment payment, Long userId) {
+    public void processPayment(Long orderId, Long userId, Long totalAmount, PaymentMethod paymentMethod) {
+        Payment payment = Payment.create(orderId, paymentMethod, totalAmount);
+
         if (payment == null) {
             throw new ApiException(PAYMENT_INFO_NOT_EXIST);
         }
 
-        // 결제별 분산락 적용
-        distributedLockService.executePaymentLock(payment.getId(), () -> {
-            log.info("결제 처리 시작 - 결제 ID: {}, 사용자 ID: {}", payment.getId(), userId);
+        // 주문별 분산락 적용 (같은 주문의 중복 결제 방지)
+        distributedLockService.executePaymentLock(orderId, () -> {
+            log.info("결제 처리 시작 - 주문 ID: {}, 사용자 ID: {}", orderId, userId);
             
-            checkDuplicatePayment(payment);
-            deductPointWithLock(payment, userId);
-
-            // 결제 정보를 저장 (이미 PENDING 상태)
-            savePayment(payment);
-
-            // 외부 플랫폼 결제 처리 시작
-            handleExternalPayment(payment.getId());
+            checkDuplicatePayment(orderId, payment);
+            Payment savedPayment = savePayment(payment);
             
-            log.info("결제 처리 완료 - 결제 ID: {}", payment.getId());
+            // 결제별 분산락 적용 (결제 처리 과정의 동시성 제어)
+            distributedLockService.executePaymentLock(savedPayment.getId(), () -> {
+                deductPointWithLock(savedPayment, userId);
+                handleExternalPayment(savedPayment.getId());
+                log.info("결제 처리 완료 - 결제 ID: {}", savedPayment.getId());
+                return null;
+            });
+            
             return null;
         });
     }
 
-    private void checkDuplicatePayment(Payment payment) {
+    private void checkDuplicatePayment(Long orderId, Payment payment) {
         if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
-            log.warn("중복 결제 감지 - 결제 ID: {}, 중복 방지 키: {}", payment.getId(), payment.getIdempotencyKey());
+            log.warn("중복 결제 감지 - 주문 ID: {}, 중복 방지 키: {}", orderId, payment.getIdempotencyKey());
             throw new ApiException(DUPLICATE_PAYMENT);
         }
     }
@@ -100,7 +105,7 @@ public class PaymentService {
         return dataPlatform.sendData(payment);
     }
 
-    private void savePayment(Payment payment) {
-        paymentRepository.save(payment);
+    private Payment savePayment(Payment payment) {
+        return paymentRepository.save(payment);
     }
 }

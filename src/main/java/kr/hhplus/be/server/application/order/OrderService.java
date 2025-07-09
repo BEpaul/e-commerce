@@ -47,6 +47,7 @@ public class OrderService {
      * 8. 결제 처리 (포인트 차감)
      * 9. 주문 상품 정보 저장
      * 10. 주문 상태 업데이트
+     * 11. 베스트셀러 랭킹 업데이트
      */
     @Transactional
     public Order placeOrder(Order order, List<OrderProduct> orderProducts) {
@@ -63,7 +64,6 @@ public class OrderService {
             initiatePayment(savedOrder, totalPrice);
             saveOrderProducts(savedOrder, orderProducts);
             
-            // 베스트셀러 랭킹 업데이트
             updateBestSellerRanking(orderProducts);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
@@ -129,12 +129,10 @@ public class OrderService {
      */
     private void initiatePayment(Order order, long totalPrice) {
         try {
-            Payment payment = Payment.create(order.getId(), PaymentMethod.POINT, totalPrice);
-            
-            paymentService.processPayment(payment, order.getUserId());
-            
+            paymentService.processPayment(order.getId(), order.getUserId(), totalPrice, PaymentMethod.POINT);
+
             order.success();
-            log.info("결제 처리 완료 - 주문 ID: {}, 결제 ID: {}", order.getId(), payment.getId());
+            log.info("결제 처리 완료 - 주문 ID: {}", order.getId());
         } catch (Exception e) {
             order.fail();
             log.error("결제 처리 실패 - 주문 ID: {}", order.getId(), e);
