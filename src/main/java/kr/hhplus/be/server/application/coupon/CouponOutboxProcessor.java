@@ -2,11 +2,11 @@ package kr.hhplus.be.server.application.coupon;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.hhplus.be.server.interfaces.web.coupon.dto.CouponIssuedEventDto;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssuedEventDto;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
-import kr.hhplus.be.server.infrastructure.external.coupon.CouponOutBoxEvent;
-import kr.hhplus.be.server.infrastructure.external.coupon.CouponOutBoxEventRepository;
+import kr.hhplus.be.server.domain.coupon.event.CouponOutBoxEvent;
+import kr.hhplus.be.server.domain.coupon.event.CouponOutBoxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
