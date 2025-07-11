@@ -35,7 +35,6 @@ public class OrderEventPublisher {
                 
         } catch (Exception e) {
             log.error("주문 완료 이벤트 발행 실패 - 주문 ID: {}", order.getId(), e);
-            // 이벤트 발행 실패는 주문 처리에 영향을 주지 않도록 함
         }
     }
 

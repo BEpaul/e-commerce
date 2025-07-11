@@ -10,6 +10,7 @@ import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.domain.order.event.OrderEventPublisher;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
@@ -62,6 +63,9 @@ class OrderServiceTest {
     @Mock
     private BestSellerRankingService bestSellerRankingService;
 
+    @Mock
+    private OrderEventPublisher orderEventPublisher;
+
     @Nested
     class Describe_createOrder {
 
@@ -107,8 +111,9 @@ class OrderServiceTest {
                 return invocation.getArgument(1, java.util.function.Supplier.class).get();
             });
             
-            // BestSellerRankingService 모킹 설정
             lenient().doNothing().when(bestSellerRankingService).incrementTodaySales(any(), any());
+            
+            lenient().doNothing().when(orderEventPublisher).publishOrderCompletedEvent(any(), any());
         }
 
         @Test
@@ -135,12 +140,13 @@ class OrderServiceTest {
             then(distributedLockService).should().executeOrderLock(eq(1L), any());
             then(distributedLockService).should().executeProductStockLock(eq(1L), any());
             then(bestSellerRankingService).should().incrementTodaySales(eq(1L), eq(2L));
+            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts));
         }
 
         @Test
         void 쿠폰이_적용된_주문이_성공적으로_생성된다() {
             // given
-            order = Order.builder()
+            Order couponOrder = Order.builder()
                 .id(1L)
                 .userId(1L)
                 .userCouponId(1L)
@@ -149,7 +155,7 @@ class OrderServiceTest {
             doNothing().when(paymentService).processPayment(eq(1L), eq(1L), eq(15000L), eq(PaymentMethod.POINT), any(String.class));
 
             // when
-            Order result = orderService.placeOrder(order, orderProducts);
+            Order result = orderService.placeOrder(couponOrder, orderProducts);
 
             // then
             assertThat(result).isNotNull();
@@ -159,6 +165,7 @@ class OrderServiceTest {
             then(distributedLockService).should().executeOrderLock(eq(1L), any());
             then(distributedLockService).should().executeProductStockLock(eq(1L), any());
             then(bestSellerRankingService).should().incrementTodaySales(eq(1L), eq(2L));
+            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts));
         }
 
         @Test

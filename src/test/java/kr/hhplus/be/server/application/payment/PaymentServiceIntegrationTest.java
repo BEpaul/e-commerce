@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.application.point.PointService;
 import kr.hhplus.be.server.common.exception.ApiException;
+import kr.hhplus.be.server.domain.order.event.OrderEventPublisher;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
@@ -22,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static kr.hhplus.be.server.common.exception.ErrorCode.*;
 
@@ -48,6 +48,9 @@ class PaymentServiceIntegrationTest {
 
     @MockitoBean
     private PointService pointService;
+
+    @MockitoBean
+    private OrderEventPublisher orderEventPublisher;
 
     private Long orderId;
     private Long amount;
@@ -89,9 +92,6 @@ class PaymentServiceIntegrationTest {
 
         @Test
         void 결제를_성공적으로_처리한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(true);
-
             // when
             paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey);
 
@@ -120,29 +120,7 @@ class PaymentServiceIntegrationTest {
         }
 
         @Test
-        void 외부_결제_플랫폼_응답이_실패하면_결제가_취소되고_예외가_발생한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(false);
-
-            // when & then
-            assertThatThrownBy(() -> paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey))
-                    .isInstanceOf(ApiException.class)
-                    .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
-            
-            // 결제가 취소되었는지 확인
-            Payment savedPayment = paymentRepository.findAll().stream()
-                .filter(p -> p.getOrderId().equals(orderId))
-                .findFirst()
-                .orElseThrow();
-            
-            assertThat(savedPayment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
-        }
-
-        @Test
         void 동일한_결제_요청이_중복으로_들어오면_예외가_발생한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(true);
-
             // when - 첫 번째 결제 성공
             paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey);
 
