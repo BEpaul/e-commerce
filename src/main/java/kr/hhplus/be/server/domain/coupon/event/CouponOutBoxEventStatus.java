@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.external.coupon;
+package kr.hhplus.be.server.domain.coupon.event;
 
 public enum CouponOutBoxEventStatus {
     PENDING,    // 대기 중

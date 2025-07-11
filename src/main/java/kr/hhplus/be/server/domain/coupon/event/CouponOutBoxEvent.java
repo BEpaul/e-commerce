@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.external.coupon;
+package kr.hhplus.be.server.domain.coupon.event;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.common.config.BaseTimeEntity;

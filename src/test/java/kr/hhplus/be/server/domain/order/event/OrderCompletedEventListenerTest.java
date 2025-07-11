@@ -1,11 +1,9 @@
 package kr.hhplus.be.server.domain.order.event;
 
-import kr.hhplus.be.server.domain.order.event.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderProduct;
-import kr.hhplus.be.server.domain.order.event.OrderCompletedEventListener;
 import kr.hhplus.be.server.domain.product.Product;
-import kr.hhplus.be.server.infrastructure.external.payment.DataPlatform;
+import kr.hhplus.be.server.infrastructure.external.orderinfo.DataPlatform;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

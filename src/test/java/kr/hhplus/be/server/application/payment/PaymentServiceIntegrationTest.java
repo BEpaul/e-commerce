@@ -9,7 +9,7 @@ import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.point.Point;
 import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
-import kr.hhplus.be.server.infrastructure.external.payment.DataPlatform;
+import kr.hhplus.be.server.infrastructure.external.orderinfo.DataPlatform;
 import kr.hhplus.be.server.infrastructure.persistence.point.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
