@@ -59,12 +59,22 @@ public class PaymentService {
     }
 
     /**
+     * 중복 결제 체크
+     */
+    private void checkDuplicatePayment(Long orderId, Payment payment) {
+        if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
+            log.warn("중복 결제 감지 - 주문 ID: {}, 중복 방지 키: {}", orderId, payment.getIdempotencyKey());
+            throw new ApiException(DUPLICATE_PAYMENT);
+        }
+    }
+
+    /**
      * 결제별 분산락을 적용한 결제 처리
      */
     private void processPaymentWithLock(Payment payment, Long userId) {
         distributedLockService.executePaymentLock(payment.getId(), () -> {
             deductPoint(payment, userId);
-            handleExternalPayment(payment.getId());
+            payment.approve();
             log.info("결제 처리 완료 - 결제 ID: {}", payment.getId());
             return null;
         });
@@ -81,37 +91,6 @@ public class PaymentService {
                 return null;
             });
         }
-    }
-
-    /**
-     * 중복 결제 체크
-     */
-    private void checkDuplicatePayment(Long orderId, Payment payment) {
-        if (paymentRepository.existsByIdempotencyKey(payment.getIdempotencyKey())) {
-            log.warn("중복 결제 감지 - 주문 ID: {}, 중복 방지 키: {}", orderId, payment.getIdempotencyKey());
-            throw new ApiException(DUPLICATE_PAYMENT);
-        }
-    }
-
-//    @Async("taskExecutor")
-    protected void handleExternalPayment(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new ApiException(PAYMENT_INFO_NOT_EXIST));
-
-        boolean isPaymentSuccess = sendPaymentToDataPlatform(payment);
-
-        if (!isPaymentSuccess) {
-            payment.cancel();
-            log.error("결제 처리 실패 - 결제 ID: {}", paymentId);
-            throw new ApiException(PAYMENT_PROCESSING_FAILED);
-        }
-
-        payment.approve();
-        log.info("결제 처리 완료 - 결제 ID: {}, 성공 여부: {}", paymentId, isPaymentSuccess);
-    }
-
-    private boolean sendPaymentToDataPlatform(Payment payment) {
-        return dataPlatform.sendData(payment);
     }
 
     private Payment savePayment(Payment payment) {
