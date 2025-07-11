@@ -5,10 +5,8 @@ import kr.hhplus.be.server.common.exception.ApiException;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
-import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.point.Point;
 import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
-import kr.hhplus.be.server.infrastructure.external.payment.DataPlatform;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,9 +35,6 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    private DataPlatform dataPlatform;
-
-    @Mock
     private PointService pointService;
 
     @Mock
@@ -52,7 +46,6 @@ class PaymentServiceTest {
 
     @Nested
     class Describe_processPayment {
-
         private Long orderId;
         private Long userId;
         private Long amount;
@@ -101,9 +94,6 @@ class PaymentServiceTest {
 
         @Test
         void 결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(true);
-
             // when
             paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey);
 
@@ -112,20 +102,6 @@ class PaymentServiceTest {
             then(pointService).should().usePoint(eq(userId), eq(amount));
             then(distributedLockService).should().executePaymentLock(eq(orderId), any());
             then(distributedLockService).should().executePointLock(eq(userId), any());
-        }
-
-        @Test
-        void 외부_결제_플랫폼_응답이_실패하면_결제가_취소되고_예외가_발생한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(false);
-
-            // when & then
-            assertThatThrownBy(() -> paymentService.processPayment(orderId, userId, amount, PaymentMethod.POINT, idempotencyKey))
-                .isInstanceOf(ApiException.class)
-                .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
-
-            then(paymentRepository).should().save(any(Payment.class));
-            then(distributedLockService).should().executePaymentLock(eq(orderId), any());
         }
 
         @Test
@@ -142,58 +118,5 @@ class PaymentServiceTest {
         }
     }
 
-    @Nested
-    class Describe_handleExternalPayment {
 
-        private Long paymentId;
-        private Payment payment;
-        private String idempotencyKey;
-
-        @BeforeEach
-        void setUp() {
-            paymentId = 1L;
-            idempotencyKey = generateIdempotencyKey(1L);
-            payment = Payment.create(1L, idempotencyKey, PaymentMethod.POINT, 10000L);
-
-            lenient().when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
-        }
-
-        @Test
-        void 결제_처리가_성공하면_결제_상태를_APPROVED로_변경한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(true);
-
-            // when
-            paymentService.handleExternalPayment(paymentId);
-
-            // then
-            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.APPROVED);
-        }
-
-        @Test
-        void 결제_처리가_실패하면_결제_상태를_CANCELED로_변경하고_예외가_발생한다() {
-            // given
-            given(dataPlatform.sendData(any())).willReturn(false);
-
-            // when & then
-            assertThatThrownBy(() -> paymentService.handleExternalPayment(paymentId))
-                .isInstanceOf(ApiException.class)
-                .hasMessage(PAYMENT_PROCESSING_FAILED.getMessage());
-
-            // 결제 상태가 CANCELED로 변경되었는지 확인
-            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELED);
-        }
-
-        @Test
-        void 결제_정보를_찾을_수_없으면_예외가_발생한다() {
-            // given
-            Long nonExistentPaymentId = 999L;
-            given(paymentRepository.findById(nonExistentPaymentId)).willReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> paymentService.handleExternalPayment(nonExistentPaymentId))
-                .isInstanceOf(ApiException.class)
-                .hasMessage(PAYMENT_INFO_NOT_EXIST.getMessage());
-        }
-    }
 }
