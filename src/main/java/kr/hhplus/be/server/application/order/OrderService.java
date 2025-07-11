@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.application.bestseller.BestSellerRankingService;
 import kr.hhplus.be.server.application.coupon.CouponService;
+import kr.hhplus.be.server.domain.order.event.OrderEventPublisher;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.common.exception.ApiException;
@@ -9,7 +10,6 @@ import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderProduct;
 import kr.hhplus.be.server.domain.order.OrderProductRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
-import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentMethod;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.infrastructure.config.redis.DistributedLockService;
@@ -34,6 +34,7 @@ public class OrderService {
     private final PaymentService paymentService;
     private final DistributedLockService distributedLockService;
     private final BestSellerRankingService bestSellerRankingService;
+    private final OrderEventPublisher orderEventPublisher;
 
     /**
      * 주문 생성
@@ -53,7 +54,7 @@ public class OrderService {
     public Order placeOrder(Order order, List<OrderProduct> orderProducts) {
         return distributedLockService.executeOrderLock(order.getUserId(), () -> {
             log.info("주문 생성 시작 - 사용자 ID: {}", order.getUserId());
-            
+
             validateOrderProducts(orderProducts);
             decreaseProductStocksWithLock(orderProducts);
             long totalPrice = calculateTotalPrice(orderProducts);
@@ -63,8 +64,11 @@ public class OrderService {
             Order savedOrder = saveOrder(order, totalPrice);
             initiatePayment(savedOrder, totalPrice);
             saveOrderProducts(savedOrder, orderProducts);
-            
+
             updateBestSellerRanking(orderProducts);
+
+            // 주문 완료 이벤트 발행
+            orderEventPublisher.publishOrderCompletedEvent(savedOrder, orderProducts);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
             return savedOrder;
@@ -130,7 +134,7 @@ public class OrderService {
     private void initiatePayment(Order order, long totalPrice) {
         try {
             String idempotencyKey = generateIdempotencyKey(order.getId());
-            
+
             paymentService.processPayment(
                     order.getId(),
                     order.getUserId(),
@@ -143,6 +147,7 @@ public class OrderService {
             log.info("결제 처리 완료 - 주문 ID: {}", order.getId());
         } catch (Exception e) {
             order.fail();
+            orderRepository.save(order);
             log.error("결제 처리 실패 - 주문 ID: {}", order.getId(), e);
             throw new ApiException(PAYMENT_FAILED);
         }
@@ -155,7 +160,7 @@ public class OrderService {
             orderProductRepository.save(orderProduct);
         }
     }
-    
+
     /**
      * 베스트셀러 랭킹 업데이트
      */
@@ -163,8 +168,8 @@ public class OrderService {
         try {
             for (OrderProduct orderProduct : orderProducts) {
                 bestSellerRankingService.incrementTodaySales(
-                    orderProduct.getProductId(), 
-                    orderProduct.getQuantity()
+                        orderProduct.getProductId(),
+                        orderProduct.getQuantity()
                 );
             }
             log.info("베스트셀러 랭킹 업데이트 완료 - 주문 상품 수: {}", orderProducts.size());
@@ -172,7 +177,7 @@ public class OrderService {
             log.error("베스트셀러 랭킹 업데이트 실패", e);
         }
     }
-    
+
     /**
      * 멱등성 키 생성
      */

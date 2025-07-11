@@ -1,23 +1,25 @@
 package kr.hhplus.be.server.infrastructure.external.payment;
 
-import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.interfaces.web.order.dto.event.OrderCompletedEventDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
-//@RequiredArgsConstructor
 public class DataPlatform {
 
-//    private final PaymentOutBoxEventRepository paymentOutBoxEventRepository;
-
-    public boolean sendData(Payment payment) {
-        // 실제 외부 API 호출
+    /**
+     * 주문 완료 데이터를 데이터 플랫폼에 전송
+     */
+    public boolean sendOrderData(OrderCompletedEventDto orderEvent) {
+        // 실제 외부 API 호출 (Mock)
         try {
-            // externalApiClient.send(payment);
+            // externalApiClient.sendOrderData(orderEvent);
+            // 실제 구현에서는 HTTP 클라이언트를 사용하여 외부 API 호출
+            log.info("데이터 플랫폼으로 주문 정보 전송: {}", orderEvent.getOrderId());
             return true;
         } catch (Exception e) {
-            // 실패시 outbox에 저장
-//            paymentOutBoxEventRepository.save(PaymentOutBoxEvent.create(payment));
-            // 또는 재시도 로직
+            log.warn("데이터 플랫폼 전송 실패: {}", e.getMessage());
             return false;
         }
     }
