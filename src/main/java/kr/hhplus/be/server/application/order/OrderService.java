@@ -67,7 +67,6 @@ public class OrderService {
 
             updateBestSellerRanking(orderProducts);
 
-            // 주문 완료 이벤트 발행
             orderEventPublisher.publishOrderCompletedEvent(savedOrder, orderProducts);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
@@ -146,7 +145,7 @@ public class OrderService {
             order.success();
             log.info("결제 처리 완료 - 주문 ID: {}", order.getId());
         } catch (Exception e) {
-            order.fail();
+            order.markAsFailed();
             orderRepository.save(order);
             log.error("결제 처리 실패 - 주문 ID: {}", order.getId(), e);
             throw new ApiException(PAYMENT_FAILED);
