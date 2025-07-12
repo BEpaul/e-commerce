@@ -74,7 +74,7 @@ public class PaymentService {
     private void processPaymentWithLock(Payment payment, Long userId) {
         distributedLockService.executePaymentLock(payment.getId(), () -> {
             deductPoint(payment, userId);
-            payment.approve();
+            payment.markAsApproved();
             log.info("결제 처리 완료 - 결제 ID: {}", payment.getId());
             return null;
         });

@@ -57,17 +57,17 @@ public class Payment {
                 .build();
     }
 
-    public void approve() {
+    public void markAsApproved() {
         this.status = PaymentStatus.APPROVED;
         this.approvedAt = LocalDateTime.now();
     }
 
-    public void cancel() {
+    public void markAsCanceled() {
         this.status = PaymentStatus.CANCELED;
         this.canceledAt = LocalDateTime.now();
     }
 
-    public void pending() {
+    public void markAsPending() {
         this.status = PaymentStatus.PENDING;
     }
 } 
