@@ -113,7 +113,7 @@ class OrderServiceTest {
             
             lenient().doNothing().when(bestSellerRankingService).incrementTodaySales(any(), any());
             
-            lenient().doNothing().when(orderEventPublisher).publishOrderCompletedEvent(any(), any());
+            lenient().doNothing().when(orderEventPublisher).publishOrderCompletedEvent(any(), any(), any());
         }
 
         @Test
@@ -140,7 +140,7 @@ class OrderServiceTest {
             then(distributedLockService).should().executeOrderLock(eq(1L), any());
             then(distributedLockService).should().executeProductStockLock(eq(1L), any());
             then(bestSellerRankingService).should().incrementTodaySales(eq(1L), eq(2L));
-            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts));
+            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts), any());
         }
 
         @Test
@@ -165,7 +165,7 @@ class OrderServiceTest {
             then(distributedLockService).should().executeOrderLock(eq(1L), any());
             then(distributedLockService).should().executeProductStockLock(eq(1L), any());
             then(bestSellerRankingService).should().incrementTodaySales(eq(1L), eq(2L));
-            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts));
+            then(orderEventPublisher).should().publishOrderCompletedEvent(any(Order.class), eq(orderProducts), any());
         }
 
         @Test

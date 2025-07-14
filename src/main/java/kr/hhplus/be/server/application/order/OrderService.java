@@ -67,7 +67,11 @@ public class OrderService {
 
             updateBestSellerRanking(orderProducts);
 
-            orderEventPublisher.publishOrderCompletedEvent(savedOrder, orderProducts);
+            List<Product> products = orderProducts.stream()
+                    .map(orderProduct -> productService.getProduct(orderProduct.getProductId()))
+                    .toList();
+            
+            orderEventPublisher.publishOrderCompletedEvent(savedOrder, orderProducts, products);
 
             log.info("주문 생성 완료 - 주문 ID: {}, 사용자 ID: {}", savedOrder.getId(), order.getUserId());
             return savedOrder;
