@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.order.event;
 
+import kr.hhplus.be.server.domain.order.event.dto.OrderCompletedEventDto;
 import kr.hhplus.be.server.infrastructure.external.orderinfo.DataPlatform;
-import kr.hhplus.be.server.interfaces.web.order.dto.event.OrderCompletedEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
