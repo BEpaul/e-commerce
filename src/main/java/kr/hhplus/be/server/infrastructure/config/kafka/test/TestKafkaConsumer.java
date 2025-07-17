@@ -16,7 +16,7 @@ public class TestKafkaConsumer {
     @KafkaListener(
         topics = TEST_TOPIC,
         groupId = "test-group",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "stringKafkaListenerContainerFactory"
     )
     public void consumeMessage(
             @Payload String message,
@@ -47,7 +47,7 @@ public class TestKafkaConsumer {
     @KafkaListener(
         topics = TEST_TOPIC,
         groupId = "test-group-detailed",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "stringKafkaListenerContainerFactory"
     )
     public void consumeMessageDetailed(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         try {

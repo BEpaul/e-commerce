@@ -13,14 +13,14 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class TestKafkaProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> stringKafkaTemplate;
     
     private static final String TEST_TOPIC = "test-topic";
 
     public void sendMessage(String message) {
         log.info("Sending message to topic {}: {}", TEST_TOPIC, message);
         
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(TEST_TOPIC, message);
+        CompletableFuture<SendResult<String, String>> future = stringKafkaTemplate.send(TEST_TOPIC, message);
         
         future.whenComplete((result, ex) -> {
             if (ex == null) {
@@ -37,7 +37,7 @@ public class TestKafkaProducer {
     public void sendMessageWithKey(String key, String message) {
         log.info("Sending message with key {} to topic {}: {}", key, TEST_TOPIC, message);
         
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(TEST_TOPIC, key, message);
+        CompletableFuture<SendResult<String, String>> future = stringKafkaTemplate.send(TEST_TOPIC, key, message);
         
         future.whenComplete((result, ex) -> {
             if (ex == null) {
