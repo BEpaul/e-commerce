@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infrastructure.config.kafka;
 
+import kr.hhplus.be.server.domain.order.event.dto.OrderCompletedEventDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -99,5 +100,24 @@ public class KafkaConfig {
         factory.setConsumerFactory(stringConsumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return factory;
+    }
+
+    // OrderCompletedEventDto 전용 설정
+    @Bean
+    public ProducerFactory<String, OrderCompletedEventDto> orderCompletedProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
+        configProps.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        configProps.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, OrderCompletedEventDto> orderCompletedKafkaTemplate() {
+        return new KafkaTemplate<>(orderCompletedProducerFactory());
     }
 }
