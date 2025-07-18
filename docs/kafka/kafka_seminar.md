@@ -41,15 +41,14 @@ Kafka는 **분산 스트리밍 플랫폼**으로, 실시간 데이터 파이프�
 
 ### 2.2 Kafka 아키텍처 구성요소
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Producer      │    │     Kafka       │    │   Consumer      │
-│                 │───▶│   Cluster       │───▶│                 │
-│ - 데이터 발행      │    │                 │    │ - 데이터 소비      │
-│ - 메시지 전송      │    │ - Broker        │    │ - 메시지 처리      │
-└─────────────────┘    │ - Topic         │    └─────────────────┘
-                       │ - Partition     │
-                       └─────────────────┘
+```mermaid
+graph LR
+    A[Producer<br/>- 데이터 발행<br/>- 메시지 전송] --> B[Kafka Cluster<br/>- Broker<br/>- Topic<br/>- Partition]
+    B --> C[Consumer<br/>- 데이터 소비<br/>- 메시지 처리]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
 ```
 
 ## 3. Kafka의 주요 구성요소
@@ -67,11 +66,16 @@ Kafka는 **분산 스트리밍 플랫폼**으로, 실시간 데이터 파이프�
 
 ### 3.2 Topic과 Partition 구조
 
-```
-Topic: "user-events"
-├── Partition 0: [msg0, msg3, msg6, ...]
-├── Partition 1: [msg1, msg4, msg7, ...]
-└── Partition 2: [msg2, msg5, msg8, ...]
+```mermaid
+graph TD
+    A[Topic: user-events] --> B[Partition 0<br/>msg0, msg3, msg6, ...]
+    A --> C[Partition 1<br/>msg1, msg4, msg7, ...]
+    A --> D[Partition 2<br/>msg2, msg5, msg8, ...]
+    
+    style A fill:#fff3e0
+    style B fill:#e3f2fd
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
 ```
 
 **Partition의 장점:**
@@ -127,11 +131,16 @@ Topic: "user-events"
 
 ### 5.2 Consumer Group
 
-```
-Consumer Group: "order-processors"
-├── Consumer 1: Partition 0, 3 처리
-├── Consumer 2: Partition 1, 4 처리
-└── Consumer 3: Partition 2, 5 처리
+```mermaid
+graph TD
+    A[Consumer Group: order-processors] --> B[Consumer 1<br/>Partition 0, 3 처리]
+    A --> C[Consumer 2<br/>Partition 1, 4 처리]
+    A --> D[Consumer 3<br/>Partition 2, 5 처리]
+    
+    style A fill:#fff3e0
+    style B fill:#e3f2fd
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
 ```
 
 **Consumer Group의 역할:**
@@ -151,32 +160,50 @@ Consumer Group: "order-processors"
 
 ### 6.1 마이크로서비스 간 통신
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│ Order       │    │ Kafka       │    │ Payment     │
-│ Service     │───▶│ Topic       │───▶│ Service     │
-│             │    │             │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘
-       │                   │                   │
-       ▼                   ▼                   ▼
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│ Inventory   │    │ Kafka       │    │ Notification│
-│ Service     │◀───│ Topic       │◀───│ Service     │
-│             │    │             │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+graph TB
+    subgraph "Order Domain"
+        A[Order Service]
+        D[Inventory Service]
+    end
+    
+    subgraph "Kafka Topics"
+        B[Order Events Topic]
+        E[Inventory Events Topic]
+    end
+    
+    subgraph "Payment Domain"
+        C[Payment Service]
+        F[Notification Service]
+    end
+    
+    A -->|주문 생성 이벤트| B
+    B -->|주문 이벤트 수신| C
+    C -->|결제 완료 이벤트| E
+    E -->|재고 업데이트| D
+    C -->|알림 이벤트| F
+    
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
+    style E fill:#fff3e0
+    style F fill:#f3e5f5
 ```
 
 ### 6.2 백엔드 시스템 이벤트 처리 파이프라인
 
+```mermaid
+flowchart LR
+    A[User Actions<br/>Orders, Payments<br/>Logins, Searches] --> B[Kafka<br/>Real-time Processing]
+    B --> C[Event Processing<br/>Business Logic<br/>Filtering, Enrichment]
+    C --> D[System Updates<br/>Databases, Caches<br/>External APIs, Queues]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
 ```
-User Actions → Kafka → Event Processing → System Updates
-     │           │           │              │
-  Orders     Real-time    Business      Databases
-  Payments   Processing   Logic         Caches
-  Logins     Filtering    Notifications External APIs
-  Searches   Enrichment   Analytics     Message Queues
-```
-
 
 | 이벤트 타입 | 처리 로직 | 결과 액션 |
 |-------------|-----------|-----------|
@@ -186,14 +213,17 @@ User Actions → Kafka → Event Processing → System Updates
 | **결제 완료** | 포인트 적립, 쿠폰 사용 | 포인트 업데이트, 쿠폰 상태 변경 |
 
 **실제 구현 예시:**
-```
-Order Service → Kafka Topic → Event Processor → Multiple Consumers
-     │              │              │                    │
-  주문 생성     order-created    비즈니스 로직      재고 서비스
-  주문 취소     order-cancelled  검증 및 변환      결제 서비스
-  주문 완료     order-completed  데이터 보강      알림 서비스
-                                    │              포인트 서비스
-                              이벤트 라우팅
+
+```mermaid
+graph LR
+    A[Order Service<br/>주문 생성<br/>주문 취소<br/>주문 완료] --> B[Kafka Topic<br/>order-created<br/>order-cancelled<br/>order-completed]
+    B --> C[Event Processor<br/>비즈니스 로직<br/>검증 및 변환<br/>데이터 보강]
+    C --> D[Multiple Consumers<br/>재고 서비스<br/>결제 서비스<br/>알림 서비스<br/>포인트 서비스]
+    
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
 ```
 
 ## 7. Kafka 도입 시 고려사항
