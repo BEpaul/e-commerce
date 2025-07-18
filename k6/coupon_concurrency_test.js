@@ -5,7 +5,6 @@ import { Trend, Rate, Counter } from 'k6/metrics';
 const TEST_TYPE = __ENV.TEST_TYPE || 'smoke';
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const COUPON_ENDPOINT = '/api/v1/coupons';
-const COUPON_ID = 4;
 
 const successRate = new Rate('success_rate');
 const failCount = new Counter('fail_count');
@@ -83,10 +82,11 @@ switch (TEST_TYPE) {
 
 export default function () {
     const userId = __VU * 100000 + __ITER + 1;
+    const couponId = Math.floor(Math.random() * 6) + 8;
     const url = `${BASE_URL}${COUPON_ENDPOINT}`;
     const payload = JSON.stringify({
         "userId": userId,
-        "couponId": COUPON_ID
+        "couponId": couponId
     });
 
     const headers = { 'Content-Type': 'application/json' };
