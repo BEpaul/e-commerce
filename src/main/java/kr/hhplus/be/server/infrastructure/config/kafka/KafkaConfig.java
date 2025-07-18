@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.infrastructure.config.kafka;
 
 import kr.hhplus.be.server.domain.order.event.dto.OrderCompletedEventDto;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssueRequestEventDto;
+import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssueResultEventDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -65,7 +67,9 @@ public class KafkaConfig {
         return factory;
     }
 
-    // String 메시지 전용 설정 (기존 테스트용)
+    /**
+     * String 메시지 전용 설정 (기존 테스트용)
+     */
     @Bean
     public ProducerFactory<String, String> stringProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -102,7 +106,9 @@ public class KafkaConfig {
         return factory;
     }
 
-    // OrderCompletedEventDto 전용 설정
+    /**
+     * OrderCompletedEventDto 전용 설정
+     */
     @Bean
     public ProducerFactory<String, OrderCompletedEventDto> orderCompletedProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -119,5 +125,47 @@ public class KafkaConfig {
     @Bean
     public KafkaTemplate<String, OrderCompletedEventDto> orderCompletedKafkaTemplate() {
         return new KafkaTemplate<>(orderCompletedProducerFactory());
+    }
+
+    /**
+     * CouponIssueRequestEventDto 전용 설정
+     */
+    @Bean
+    public ProducerFactory<String, CouponIssueRequestEventDto> couponIssueRequestProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
+        configProps.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        configProps.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, CouponIssueRequestEventDto> couponIssueRequestKafkaTemplate() {
+        return new KafkaTemplate<>(couponIssueRequestProducerFactory());
+    }
+
+    /**
+     * CouponIssueResultEventDto 전용 설정
+     */
+    @Bean
+    public ProducerFactory<String, CouponIssueResultEventDto> couponIssueResultProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
+        configProps.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        configProps.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, CouponIssueResultEventDto> couponIssueResultKafkaTemplate() {
+        return new KafkaTemplate<>(couponIssueResultProducerFactory());
     }
 }

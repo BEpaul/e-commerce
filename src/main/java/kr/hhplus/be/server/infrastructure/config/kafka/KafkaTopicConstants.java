@@ -12,4 +12,14 @@ public final class KafkaTopicConstants {
      * 주문 완료 이벤트 토픽
      */
     public static final String ORDER_COMPLETED = "order-completed";
+    
+    /**
+     * 쿠폰 발급 요청 토픽
+     */
+    public static final String COUPON_ISSUE_REQUEST = "coupon-issue-request";
+    
+    /**
+     * 쿠폰 발급 결과 토픽
+     */
+    public static final String COUPON_ISSUE_RESULT = "coupon-issue-result";
 } 
