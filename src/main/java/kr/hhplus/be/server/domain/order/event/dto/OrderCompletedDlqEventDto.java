@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.order.event.dto;
 
+import kr.hhplus.be.server.infrastructure.external.orderinfo.OrderCompletedDlqConsumer;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,19 @@ public class OrderCompletedDlqEventDto {
     private int retryCount;
 
     private static final int MAX_RETRY_COUNT = 3;
-    
+
+    public static OrderCompletedDlqEventDto createDlqEvent(
+            OrderCompletedEventDto originalEvent,
+            String failureReason
+    ) {
+        return OrderCompletedDlqEventDto.builder()
+                .originalEvent(originalEvent)
+                .failureReason(failureReason)
+                .failedAt(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+    }
+
     public boolean canRetry() {
         return retryCount < MAX_RETRY_COUNT;
     }

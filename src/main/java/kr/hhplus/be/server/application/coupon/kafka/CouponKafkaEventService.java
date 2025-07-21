@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.coupon;
+package kr.hhplus.be.server.application.coupon.kafka;
 
 import kr.hhplus.be.server.infrastructure.config.kafka.KafkaTopicConstants;
 import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssueRequestEventDto;

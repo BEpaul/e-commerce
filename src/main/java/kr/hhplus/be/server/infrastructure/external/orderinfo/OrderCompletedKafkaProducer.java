@@ -9,7 +9,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -57,12 +56,7 @@ public class OrderCompletedKafkaProducer {
 
     private void sendToDlq(OrderCompletedEventDto originalEvent, String failureReason) {
         try {
-            OrderCompletedDlqEventDto dlqEvent = OrderCompletedDlqEventDto.builder()
-                    .originalEvent(originalEvent)
-                    .failureReason(failureReason)
-                    .failedAt(LocalDateTime.now())
-                    .retryCount(0)
-                    .build();
+            OrderCompletedDlqEventDto dlqEvent = OrderCompletedDlqEventDto.createDlqEvent(originalEvent, failureReason);
 
             String key = String.valueOf(originalEvent.getOrderId());
             
