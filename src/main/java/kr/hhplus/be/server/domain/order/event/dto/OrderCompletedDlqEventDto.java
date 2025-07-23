@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.order.event.dto;
 
-import kr.hhplus.be.server.infrastructure.external.orderinfo.OrderCompletedDlqConsumer;
 import lombok.*;
 
 import java.time.LocalDateTime;
