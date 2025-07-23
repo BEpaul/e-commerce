@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.coupon.kafka;
 
 import kr.hhplus.be.server.common.exception.ApiException;
+import kr.hhplus.be.server.common.exception.RetryableException;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponIssueResult;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
@@ -11,6 +12,8 @@ import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssueRequestEve
 import kr.hhplus.be.server.interfaces.web.coupon.dto.event.CouponIssueResultEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -62,32 +65,41 @@ public class CouponIssueConsumer {
                         requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId(), result.getErrorMessage());
             }
             
+            ack.acknowledge();
+            
+        } catch (RetryableException e) {
+            log.warn("일시적 오류 발생, 재시도 예정 - 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}, 오류: {}",
+                    requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId(), e.getMessage());
+            // ACK 처리 X
+            throw e;
         } catch (Exception e) {
-            CouponIssueResult errorResult = createErrorResult(requestEvent, e);
-            publishResult(errorResult);
+            log.error("처리 불가능한 오류 발생 - 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}, 오류: {}",
+                    requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId(), e.getMessage());
 
-            log.error("쿠폰 발급 처리 중 오류 발생 - 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}",
-                    requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId(), e);
+            handleNonRetryableError(requestEvent, e);
+            ack.acknowledge();
         }
-        
-        ack.acknowledge();
     }
 
     private CouponIssueResult processCouponIssue(CouponIssueRequestEventDto requestEvent) {
-        Coupon coupon = findCouponById(requestEvent.getCouponId());
-        
-        // 중복 발급 검증
-        if (isAlreadyIssued(requestEvent.getUserId(), requestEvent.getCouponId())) {
-            return CouponIssueResult.duplicateIssued(requestEvent, "이미 발급받은 쿠폰입니다.");
+        try {
+            Coupon coupon = findCouponById(requestEvent.getCouponId());
+            
+            if (isAlreadyIssued(requestEvent.getUserId(), requestEvent.getCouponId())) {
+                return CouponIssueResult.duplicateIssued(requestEvent, "이미 발급받은 쿠폰입니다.");
+            }
+            
+            if (coupon.getStock() <= 0) {
+                return CouponIssueResult.outOfStock(requestEvent, "쿠폰 재고가 부족합니다.");
+            }
+            
+            return issueCoupon(requestEvent, coupon);
+            
+        } catch (OptimisticLockingFailureException e) {
+            throw new RetryableException("쿠폰 발급 중 동시성 충돌 발생", e);
+        } catch (DataAccessException e) {
+            throw new RetryableException("데이터베이스 접근 오류", e);
         }
-        
-        // 재고 검증
-        if (coupon.getStock() <= 0) {
-            return CouponIssueResult.outOfStock(requestEvent, "쿠폰 재고가 부족합니다.");
-        }
-        
-        // 쿠폰 발급 처리
-        return issueCoupon(requestEvent, coupon);
     }
 
     private CouponIssueResult issueCoupon(CouponIssueRequestEventDto requestEvent, Coupon coupon) {
@@ -103,6 +115,11 @@ public class CouponIssueConsumer {
     private void publishResult(CouponIssueResult result) {
         CouponIssueResultEventDto resultEvent = result.toEventDto();
         couponKafkaEventService.publishCouponIssueResult(resultEvent);
+    }
+
+    private void handleNonRetryableError(CouponIssueRequestEventDto requestEvent, Exception e) {
+        CouponIssueResult errorResult = createErrorResult(requestEvent, e);
+        publishResult(errorResult);
     }
 
     private CouponIssueResult createErrorResult(CouponIssueRequestEventDto requestEvent, Exception e) {
