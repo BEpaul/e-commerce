@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 import { Trend, Rate, Counter } from 'k6/metrics';
 
 const TEST_TYPE = __ENV.TEST_TYPE || 'smoke';
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
+const BASE_URL = __ENV.BASE_URL || 'http://host.docker.internal:8080';
 const COUPON_ENDPOINT = '/api/v1/coupons';
 
 const successRate = new Rate('success_rate');
