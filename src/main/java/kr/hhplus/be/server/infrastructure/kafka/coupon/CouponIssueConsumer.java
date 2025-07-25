@@ -49,7 +49,7 @@ public class CouponIssueConsumer {
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment ack) {
         
-        log.info("쿠폰 발급 요청 처리 시작 - 파티션: {}, 오프셋: {}, 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}",
+        log.debug("쿠폰 발급 요청 처리 시작 - 파티션: {}, 오프셋: {}, 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}",
                 partition, offset, requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId());
         
         try {
@@ -57,7 +57,7 @@ public class CouponIssueConsumer {
             publishResult(result);
 
             if (result.isSuccess()) {
-                log.info("쿠폰 발급 처리 완료 - 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}, UserCoupon ID: {}, 남은 재고: {}",
+                log.debug("쿠폰 발급 처리 완료 - 요청 ID: {}, 사용자 ID: {}, 쿠폰 ID: {}, UserCoupon ID: {}, 남은 재고: {}",
                         requestEvent.getRequestId(), requestEvent.getUserId(), requestEvent.getCouponId(),
                         result.getUserCouponId(), result.getRemainingStock());
             } else {
