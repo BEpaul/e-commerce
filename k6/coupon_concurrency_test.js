@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 import { Trend, Rate, Counter } from 'k6/metrics';
 
 const TEST_TYPE = __ENV.TEST_TYPE || 'smoke';
-const BASE_URL = __ENV.BASE_URL || 'http://host.docker.internal:8080';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const COUPON_ENDPOINT = '/api/v1/coupons';
 
 const successRate = new Rate('success_rate');
@@ -23,9 +23,11 @@ switch (TEST_TYPE) {
     case 'load':
         options = {
             stages: [
-                { duration: '30s', target: 2000 },
-                { duration: '1m', target: 2000 },
-                { duration: '30s', target: 0 },
+                { duration: '2m', target: 500 },
+                { duration: '2m', target: 1000 },
+                { duration: '3m', target: 1500 },
+                { duration: '2m', target: 1000 },
+                { duration: '1m', target: 0 },
             ],
             thresholds: {
                 http_req_duration: ['p(95)<1000'],
