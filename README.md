@@ -49,7 +49,7 @@
    `local` 프로파일로 실행하기 위해 필요한 인프라 컨테이너를 실행합니다.
    
    ```bash
-   docker-compose up -d && docker-compose -f docker-compose.yml up -d
+   docker-compose up -d && docker-compose -f docker-compose.kafka.yml up -d
    ```
 
 3. **Run Application**
