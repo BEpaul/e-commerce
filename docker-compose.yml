@@ -17,6 +17,7 @@ services:
       - MYSQL_DATABASE=hhplus
     volumes:
       - ./data/mysql/:/var/lib/mysql
+    user: mysql
 
   influxdb:
     image: influxdb:1.8

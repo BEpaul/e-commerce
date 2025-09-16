@@ -44,6 +44,10 @@ dependencies {
 	// Redisson
 	implementation("org.redisson:redisson-spring-boot-starter:3.27.0")
 
+	// Flyway
+	implementation("org.flywaydb:flyway-core")
+	implementation("org.flywaydb:flyway-mysql")
+
 	// Kafka
 	implementation("org.springframework.kafka:spring-kafka")
 	testImplementation("org.springframework.kafka:spring-kafka-test")
